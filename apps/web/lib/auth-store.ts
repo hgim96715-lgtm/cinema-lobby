@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 
-type AuthUser = {
+export type AuthUser = {
   id: string;
   email: string;
   nickname: string;
