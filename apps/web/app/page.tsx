@@ -1,69 +1,159 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import Link from 'next/link';
+import { useAuthStore } from '@/lib/auth-store';
+
+function Staff() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="lobby-staff" aria-hidden>
+      <span className="lobby-staff-person">
+        <span className="lobby-staff-head" />
+        <span className="lobby-staff-body" />
+      </span>
     </div>
+  );
+}
+
+export default function HomePage() {
+  const user = useAuthStore((s) => s.user);
+  const clearSession = useAuthStore((s) => s.clearSession);
+  const lit = Boolean(user);
+
+  return (
+    <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>
+      <div className="lobby-atmosphere" aria-hidden />
+
+      <div className="lobby-stage">
+        <section className="lobby-board-block">
+          <div className="lobby-board-lights" aria-hidden>
+            <span className="lobby-lamp">
+              <span className="lobby-lamp-stem" />
+              <span className="lobby-lamp-shade" />
+            </span>
+            <span className="lobby-lamp">
+              <span className="lobby-lamp-stem" />
+              <span className="lobby-lamp-shade" />
+            </span>
+          </div>
+          <h1 className="lobby-board-brand">CINEMO</h1>
+          <div className="lobby-board" aria-label="전광판 분석">
+            <p className="lobby-board-kicker">전광판 분석</p>
+            <div className="lobby-board-charts">
+              <article className="lobby-chart">
+                <p className="lobby-chart-label">오늘 입장</p>
+                <div className="lobby-chart-plot" aria-hidden />
+                <p className="lobby-chart-value">—</p>
+              </article>
+              <article className="lobby-chart">
+                <p className="lobby-chart-label">티켓 발급</p>
+                <div className="lobby-chart-plot" aria-hidden />
+                <p className="lobby-chart-value">—</p>
+              </article>
+              <article className="lobby-chart">
+                <p className="lobby-chart-label">뽑기 횟수</p>
+                <div className="lobby-chart-plot" aria-hidden />
+                <p className="lobby-chart-value">—</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <div className="lobby-hall">
+          <div className="lobby-doors lobby-doors--left">
+            <span className="lobby-door" title="준비 중">
+              뽑기방
+            </span>
+          </div>
+
+          <section className="lobby-counter" aria-label="로비 중앙 매표소">
+            <Staff />
+            <div className="lobby-desk">
+              <p className="lobby-desk-title">티켓 발급</p>
+              {lit ? (
+                <>
+                  <p className="lobby-desk-copy">
+                    오늘 뽑기 1회권을 받아 가세요.
+                  </p>
+                  <div className="lobby-desk-actions">
+                    <button
+                      type="button"
+                      className="lobby-btn lobby-btn--primary"
+                      disabled
+                      title="Ticket API 연결 예정"
+                    >
+                      발급받기
+                    </button>
+                    <button
+                      type="button"
+                      className="lobby-btn"
+                      onClick={clearSession}
+                    >
+                      나가기
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="lobby-desk-copy">
+                    조명이 꺼져 있습니다.
+                    <br />
+                    입장 후 티켓을 발급할 수 있어요.
+                  </p>
+                  <div className="lobby-desk-actions">
+                    <Link href="/login" className="lobby-btn lobby-btn--primary">
+                      입장하기
+                    </Link>
+                    <Link href="/register" className="lobby-btn">
+                      회원가입
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+            <p className="lobby-counter-label">로비 중앙</p>
+          </section>
+
+          <div className="lobby-doors lobby-doors--right">
+            <span className="lobby-door" title="준비 중">
+              후기방
+            </span>
+            <span className="lobby-door" title="준비 중">
+              카페
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="lobby-guest"
+          aria-label={user ? user.nickname : '손님'}
+        >
+          <div className="lobby-guest-row">
+            <div className="lobby-guest-figure" aria-hidden>
+              <span className="lobby-guest-head" />
+              <span className="lobby-guest-body" />
+            </div>
+            <div className="lobby-guest-info">
+              {user ? (
+                <>
+                  <p className="lobby-guest-name">{user.nickname}</p>
+                  <p className="lobby-guest-ticket">
+                    <span className="lobby-ticket-stub">TICKET</span>
+                    아직 없음
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="lobby-guest-name">손님</p>
+                  <p className="lobby-guest-ticket">입장 전 · 티켓 없음</p>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="lobby-mat" aria-hidden>
+            <span className="lobby-mat-label">ENTER</span>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
