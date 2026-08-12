@@ -3,7 +3,7 @@ export const LOBBY_ROOMS = {
   BOX_OFFICE: 'box-office',
   GACHA: 'gacha',
   REVIEW: 'review',
-  LOUNGE: 'lounge',
+  CAFETERIA: 'cafeteria',
 } as const;
 
 export type LobbyRoomId = (typeof LOBBY_ROOMS)[keyof typeof LOBBY_ROOMS];
