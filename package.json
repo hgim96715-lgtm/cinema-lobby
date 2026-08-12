@@ -1,0 +1,11 @@
+{
+  "name": "cinema-lobby",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --filter api start:dev",
+    "dev:web": "pnpm --filter web dev",
+    "build:api": "pnpm --filter api build",
+    "build:shared": "pnpm --filter @cinema-lobby/shared build",
+    "migrate": "pnpm --filter api exec prisma migrate dev"
+  }
+}
