@@ -9,4 +9,4 @@ export const LOBBY_ROOMS = {
 export type LobbyRoomId = (typeof LOBBY_ROOMS)[keyof typeof LOBBY_ROOMS];
 
 /** 티켓 = 오늘 뽑기 1회권 */
-export type TicketStatus = 'none' | 'held' | 'used_today';
+export type TicketStatus = 'none' | 'issued' | 'used';
