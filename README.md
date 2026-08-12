@@ -25,7 +25,15 @@ pnpm dev:api   # http://localhost:3050
 pnpm dev:web   # http://localhost:3051
 ```
 
+Swagger UI: http://localhost:3050/api
+
+프론트 타입: Swagger OpenAPI → `openapi-typescript`로 web 타입 자동 생성 예정  
+(예: api에서 openapi.json dump → `pnpm gen:api` → `apps/web`에 `.d.ts`)
+
 공유 코드: `@cinemo/shared` (`workspace:*`)  
+- shared = 방 ID·티켓 상태 등 **도메인 상수/타입**
+- openapi-typescript = **API 요청/응답** 타입 (서버 스펙과 동기화)
+  
 
 | | 포트 |
 |--|--|
@@ -37,7 +45,7 @@ pnpm dev:web   # http://localhost:3051
 docker compose up -d   # Postgres
 ```
 
-로컬 메모: `docs/state.md` · `docs/docker.md` (gitignore)  
+로컬 메모: `docs/state.md` · `docs/docker.md` · `docs/prisma/` (gitignore)  
 Redis · FCM은 나중.
 
 ## 컨셉 (초안)
