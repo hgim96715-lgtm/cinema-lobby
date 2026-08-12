@@ -79,7 +79,7 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
-    const user = await this.prisma.user.findUniqueOrThrow({
+    return this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       select: {
         id: true,
@@ -89,6 +89,27 @@ export class AuthService {
         createdAt: true,
       },
     });
-    return this.buildAuthResponse(user, '내 정보 조회 성공');
+  }
+
+  // checkEmail, checkNickname 공통 헬퍼
+  // available: true -> 사용 가능, false -> 사용 불가능
+  private async isAvailable(where: { email: string } | { nickname: string }) {
+    const existing = await this.prisma.user.findUnique({
+      where,
+      select: { id: true },
+    });
+    return { available: !existing };
+  }
+
+  async checkEmail(email: string) {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return { available: false };
+    return this.isAvailable({ email: normalized });
+  }
+
+  async checkNickname(nickname: string) {
+    const normalized = nickname.trim();
+    if (!normalized) return { available: false };
+    return this.isAvailable({ nickname: normalized });
   }
 }

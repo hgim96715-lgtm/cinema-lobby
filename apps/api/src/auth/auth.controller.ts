@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Query, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -10,6 +10,18 @@ import { UserId } from './decorators/user-id.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Get('check-email')
+  checkEmail(@Query('email') email: string) {
+    return this.authService.checkEmail(email);
+  }
+
+  @Public()
+  @Get('check-nickname')
+  checkNickname(@Query('nickname') nickname: string) {
+    return this.authService.checkNickname(nickname);
+  }
 
   @Public()
   @Post('register')
