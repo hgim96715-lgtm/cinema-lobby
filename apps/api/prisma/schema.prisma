@@ -73,3 +73,16 @@ model Ticket {
     @@unique([userId, ticketDate])
     @@map("tickets")
 }
+
+model MoviePool {
+    id          String   @id @default(uuid(7)) @db.Uuid
+    tmdbId      Int      @unique @map("tmdb_id")
+    title       String
+    overview    String   @db.Text
+    posterPath  String?  @map("poster_path")
+    releaseDate String   @default("") @map("release_date")
+    director    String?
+    syncedAt    DateTime @default(now()) @map("synced_at") @db.Timestamptz(3)
+
+    @@map("movie_pool")
+}

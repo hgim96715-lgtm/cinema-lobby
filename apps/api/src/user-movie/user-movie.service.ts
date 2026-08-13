@@ -59,7 +59,7 @@ export class UserMovieService {
       rows.map(async (row) => ({
         tmdbId: row.tmdbId,
         updatedAt: row.updatedAt.toISOString(),
-        movie: await this.tmdbService.getMovie(row.tmdbId),
+        movie: await this.tmdbService.getMovieCached(row.tmdbId),
       })),
     );
     return {

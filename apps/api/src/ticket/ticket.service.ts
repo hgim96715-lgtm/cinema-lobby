@@ -5,10 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { TicketStatus as SharedTicketStatus } from '@cinemo/shared';
+import {
+  GACHA_TMDB_FILTERS,
+  isGachaMachineId,
+  type GachaMovie,
+  type TicketStatus as SharedTicketStatus,
+} from '@cinemo/shared';
 import { todayKstDate } from '../lib/date-kst';
 import { PrismaService } from '../prisma/prisma.service';
-import { GACHA_TMDB_FILTERS, isGachaMachineId } from '@cinemo/shared';
 import { TmdbService } from '../tmdb/tmdb.service';
 @Injectable()
 export class TicketService {
@@ -21,7 +25,7 @@ export class TicketService {
     status: SharedTicketStatus;
     machineId: string | null;
     tmdbId: number | null;
-    movie: Awaited<ReturnType<TmdbService['getMovie']>> | null;
+    movie: GachaMovie | null;
   }> {
     const ticket = await this.prisma.ticket.findUnique({
       where: {
@@ -32,7 +36,7 @@ export class TicketService {
       return { status: 'none', machineId: null, tmdbId: null, movie: null };
     const movie =
       ticket.status === 'used' && ticket.tmdbId != null
-        ? await this.tmdbService.getMovie(ticket.tmdbId)
+        ? await this.tmdbService.getMovieCached(ticket.tmdbId)
         : null;
     return {
       status: ticket.status,
