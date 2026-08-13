@@ -26,6 +26,28 @@ model User {
     role         UserRole @default(user)
     createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
     updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+    tickets      Ticket[]
 
     @@map("users")
+}
+
+enum TicketStatus {
+    issued
+    used
+}
+
+model Ticket {
+    id         String       @id @default(uuid(7)) @db.Uuid
+    userId     String       @map("user_id") @db.Uuid
+    ticketDate DateTime     @map("ticket_date") @db.Date
+    status     TicketStatus
+    issuedAt   DateTime?    @map("issued_at") @db.Timestamptz(3)
+    usedAt     DateTime?    @map("used_at") @db.Timestamptz(3)
+    createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    user User @relation(fields: [userId], references: [id])
+
+    @@unique([userId, ticketDate])
+    @@map("tickets")
 }
