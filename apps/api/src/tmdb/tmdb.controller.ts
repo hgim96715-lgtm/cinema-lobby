@@ -6,7 +6,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GACHA_TMDB_FILTERS, isGachaMachineId } from '@cinemo/shared';
 import { TmdbService } from './tmdb.service';
 
@@ -23,11 +23,19 @@ export class TmdbController {
   }
 
   @Get('genres')
+  @ApiQuery({ name: 'language', required: false, example: 'ko' })
   getMovieGenres(@Query('language') language?: string) {
     return this.tmdbService.getMovieGenres(language ?? 'ko');
   }
 
   @Get('discover')
+  @ApiQuery({
+    name: 'machineId',
+    required: false,
+    example: 'thriller',
+    description: 'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
+  })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
   discover(
     @Query('machineId') machineId: string | undefined,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -36,6 +44,13 @@ export class TmdbController {
   }
 
   @Post('seed-pool')
+  @ApiQuery({
+    name: 'machineId',
+    required: false,
+    example: 'thriller',
+    description: 'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
+  })
+  @ApiQuery({ name: 'pages', required: false, example: 3 })
   seedPool(
     @Query('machineId') machineId: string | undefined,
     @Query('pages', new DefaultValuePipe(5), ParseIntPipe) pages: number,

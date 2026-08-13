@@ -137,7 +137,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.85rem;
-  width: min(100%, 40rem);
+  width: min(100%, 52rem);
 }
 
 .gacha-machine {
@@ -169,6 +169,26 @@
   --machine-accent: #5b8ec4;
 }
 
+.gacha-machine[data-id='comedy'] {
+  --machine-accent: #d4a03c;
+}
+
+.gacha-machine[data-id='romance'] {
+  --machine-accent: #c45b9a;
+}
+
+.gacha-machine[data-id='horror'] {
+  --machine-accent: #6b4a7a;
+}
+
+.gacha-machine[data-id='sf'] {
+  --machine-accent: #3d9b8f;
+}
+
+.gacha-machine[data-id='drama'] {
+  --machine-accent: #8b7355;
+}
+
 .gacha-machine[data-id='kr'] {
   --machine-accent: #c4785b;
 }
@@ -179,6 +199,26 @@
 
 .gacha-machine[data-id='us'] {
   --machine-accent: #5b7ac4;
+}
+
+.gacha-machine[data-id='fr'] {
+  --machine-accent: #5b7ac4;
+}
+
+.gacha-machine[data-id='gb'] {
+  --machine-accent: #7a5bc4;
+}
+
+.gacha-machine[data-id='cn'] {
+  --machine-accent: #c45b5b;
+}
+
+.gacha-machine[data-id='de'] {
+  --machine-accent: #8a8a5b;
+}
+
+.gacha-machine[data-id='in'] {
+  --machine-accent: #c48a3c;
 }
 
 .gacha-machine.is-used {
@@ -428,12 +468,42 @@
 }
 
 .gacha-flip-poster-empty {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
   width: 100%;
   height: 100%;
+  padding: 1.25rem;
+  text-align: center;
+  background:
+    radial-gradient(
+      ellipse at 50% 30%,
+      rgb(212 181 106 / 0.16),
+      transparent 55%
+    ),
+    linear-gradient(165deg, #2a2d38 0%, #16181f 55%, #0e1014 100%);
   color: var(--lobby-muted);
-  font-size: 0.75rem;
+}
+
+.gacha-flip-poster-empty-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--lobby-fg);
+}
+
+.gacha-flip-poster-empty-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--lobby-gold);
 }
 
 .gacha-flip-meta {
@@ -731,8 +801,9 @@
 .gacha-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.65rem;
   justify-content: center;
+  padding-top: 0.25rem;
 }
 
 @keyframes gacha-knob-spin {

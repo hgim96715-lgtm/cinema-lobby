@@ -332,7 +332,12 @@ export default function GachaPage() {
                           />
                         ) : (
                           <span className="gacha-flip-poster-empty">
-                            No Poster
+                            <span className="gacha-flip-poster-empty-title">
+                              {gachaMovie.title}
+                            </span>
+                            <span className="gacha-flip-poster-empty-label">
+                              포스터 준비 중
+                            </span>
                           </span>
                         )}
                       </span>
@@ -360,7 +365,8 @@ export default function GachaPage() {
                         onClick={(e) => e.stopPropagation()}
                         onPointerDown={(e) => e.stopPropagation()}
                       >
-                        {gachaMovie.overview?.trim() || '줄거리 정보가 없어요.'}
+                        {gachaMovie.overview?.trim() ||
+                          '줄거리가 아직 없어요. 포스터 면을 다시 봐 보세요.'}
                       </span>
                       <span className="gacha-flip-hint">탭해서 포스터</span>
                     </span>
