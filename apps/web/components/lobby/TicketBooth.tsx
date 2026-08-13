@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
@@ -17,6 +18,31 @@ export function TicketBooth({ onStatusChange }: Props) {
   const [status, setStatus] = useState<TicketStatus | null>(null);
   const [issuing, setIssuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [showTicket, setShowTicket] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!showTicket) return;
+
+    const id = window.setTimeout(() => setShowTicket(false), 2200);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowTicket(false);
+    };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [showTicket]);
 
   useEffect(() => {
     if (!accessToken || !user) {
@@ -57,6 +83,7 @@ export function TicketBooth({ onStatusChange }: Props) {
       await issueTicketRequest(accessToken);
       setStatus('issued');
       onStatusChange('issued');
+      setShowTicket(true);
     } catch (error) {
       setError(
         error instanceof Error
@@ -67,6 +94,35 @@ export function TicketBooth({ onStatusChange }: Props) {
       setIssuing(false);
     }
   }
+
+  const ticketOverlay =
+    mounted && showTicket && user
+      ? createPortal(
+          <div
+            className="ticket-stub-overlay"
+            onClick={() => setShowTicket(false)}
+          >
+            <div
+              className="ticket-stub"
+              role="status"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="ticket-stub-kicker">CINEMO</p>
+              <p className="ticket-stub-title">오늘 뽑기권</p>
+              <p className="ticket-stub-meta">{user.nickname}</p>
+              <span className="ticket-stub-perforation" aria-hidden />
+              <Link
+                href="/gacha"
+                className="ticket-stub-cta"
+                onClick={() => setShowTicket(false)}
+              >
+                뽑기하러 가기
+              </Link>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   if (!user) {
     return (
@@ -86,22 +142,35 @@ export function TicketBooth({ onStatusChange }: Props) {
 
   const canIssue = status === 'none' || status === null;
   return (
-    <div className="lobby-desk">
-      <p className="lobby-desk-title">티켓 발급</p>
-      {error ? <p className="lobby-desk-copy">{error}</p> : null}
-      <div className="lobby-desk-actions">
-        <button
-          type="button"
-          className="lobby-btn lobby-btn--primary"
-          disabled={issuing || !canIssue}
-          onClick={issueTicket}
-        >
-          발급받기
-        </button>
-        <button type="button" className="lobby-btn" onClick={clearSession}>
-          나가기
-        </button>
+    <>
+      <div className="lobby-desk">
+        <p className="lobby-desk-title">티켓 발급</p>
+        {error ? <p className="lobby-desk-copy">{error}</p> : null}
+        <div className="lobby-desk-actions">
+          {status === 'issued' ? (
+            <Link href="/gacha" className="lobby-btn lobby-btn--primary">
+              뽑기방
+            </Link>
+          ) : status === 'used' ? (
+            <button type="button" className="lobby-btn lobby-btn--primary" disabled>
+              오늘 사용함
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="lobby-btn lobby-btn--primary"
+              disabled={issuing || !canIssue}
+              onClick={issueTicket}
+            >
+              발급받기
+            </button>
+          )}
+          <button type="button" className="lobby-btn" onClick={clearSession}>
+            나가기
+          </button>
+        </div>
       </div>
-    </div>
+      {ticketOverlay}
+    </>
   );
 }

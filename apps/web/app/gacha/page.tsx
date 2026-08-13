@@ -148,15 +148,19 @@ export default function GachaPage() {
   if (!user || !accessToken) {
     return (
       <main className="gacha">
-        <p className="gacha-kicker">GACHA</p>
-        <h1 className="gacha-title">뽑기방</h1>
-        <p className="gacha-copy">입장 후 티켓으로 머신을 돌릴 수 있어요.</p>
+        <header className="gacha-header">
+          <div className="gacha-header-nav">
+            <Link href="/" className="gacha-header-link">
+              로비로
+            </Link>
+          </div>
+          <p className="gacha-kicker">GACHA</p>
+          <h1 className="gacha-title">뽑기방</h1>
+          <p className="gacha-copy">입장 후 티켓으로 머신을 돌릴 수 있어요.</p>
+        </header>
         <div className="gacha-actions">
           <Link href="/login" className="lobby-btn lobby-btn--primary">
             입장하기
-          </Link>
-          <Link href="/" className="lobby-btn">
-            로비로
           </Link>
         </div>
       </main>
@@ -164,6 +168,8 @@ export default function GachaPage() {
   }
 
   const canSpin = status === 'issued' && !usedMachine && !spinning;
+  const isTestUser =
+    user.nickname === 'test' || user.nickname === 'testuser';
   const roomMachines = selectedRoom
     ? MACHINES.filter((m) => m.room === selectedRoom)
     : [];
@@ -171,6 +177,14 @@ export default function GachaPage() {
   const selectedRoomLabel = GACHA_ROOMS.find(
     (r) => r.id === selectedRoom,
   )?.label;
+  const selectedMachineLabel = MACHINES.find(
+    (m) => m.id === selectedMachine,
+  )?.label;
+  const showSpinDock =
+    capsulePhase === 'hidden' &&
+    status === 'issued' &&
+    !usedMachine &&
+    selectedMachine !== null;
 
   async function spinMachine() {
     if (!selectedMachine || !canSpin) return;
@@ -223,8 +237,24 @@ export default function GachaPage() {
   }
 
   return (
-    <main className="gacha">
+    <main className={`gacha${showSpinDock ? ' has-spin-dock' : ''}`}>
       <header className="gacha-header">
+        <div className="gacha-header-nav">
+          <Link href="/" className="gacha-header-link">
+            로비로
+          </Link>
+          {isTestUser ? (
+            <button
+              type="button"
+              className="gacha-header-link"
+              onClick={resetToday}
+            >
+              오늘 티켓 리셋
+            </button>
+          ) : (
+            <span className="gacha-header-link gacha-header-link--spacer" />
+          )}
+        </div>
         <p className="gacha-kicker">GACHA</p>
         <h1 className="gacha-title">뽑기방</h1>
         <p className="gacha-copy">
@@ -428,7 +458,7 @@ export default function GachaPage() {
                 <Link href="/" className="gacha-nav-link">
                   로비로
                 </Link>
-                {user.nickname === 'test' || user.nickname === 'testuser' ? (
+                {isTestUser ? (
                   <button
                     type="button"
                     className="gacha-nav-link"
@@ -445,30 +475,17 @@ export default function GachaPage() {
 
       {error ? <p className="gacha-copy">{error}</p> : null}
 
-      {capsulePhase === 'hidden' ? (
-        <div className="gacha-actions">
-          {canSpin ? (
-            <button
-              type="button"
-              className="lobby-btn lobby-btn--primary"
-              disabled={!selectedMachine || spinning}
-              onClick={spinMachine}
-            >
-              {!selectedRoom
-                ? '방 선택'
-                : selectedMachine
-                  ? '레버 돌리기'
-                  : '머신 선택'}
-            </button>
-          ) : null}
-          <Link href="/" className="lobby-btn">
-            로비로
-          </Link>
-          {user.nickname === 'test' || user.nickname === 'testuser' ? (
-            <button type="button" className="lobby-btn" onClick={resetToday}>
-              오늘 티켓 리셋
-            </button>
-          ) : null}
+      {showSpinDock ? (
+        <div className="gacha-spin-dock">
+          <p className="gacha-spin-dock-label">{selectedMachineLabel}</p>
+          <button
+            type="button"
+            className="lobby-btn lobby-btn--primary"
+            disabled={spinning}
+            onClick={spinMachine}
+          >
+            레버 돌리기
+          </button>
         </div>
       ) : null}
     </main>
