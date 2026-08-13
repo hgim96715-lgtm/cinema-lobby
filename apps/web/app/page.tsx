@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
 import { TicketBooth } from '@/components/lobby/TicketBooth';
 import { staffSpeech, guestSpeech, guestTicketLabel } from '@/lib/lobby-speech';
 import { Staff } from '@/components/lobby/Staff';
 import { GuestFigure } from '@/components/lobby/GuestFigure';
+import './styles/lobby.css';
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
@@ -54,9 +56,9 @@ export default function HomePage() {
 
         <div className="lobby-hall">
           <div className="lobby-doors lobby-doors--left">
-            <span className="lobby-door" title="준비 중">
+            <Link href="/gacha" className="lobby-door">
               뽑기방
-            </span>
+            </Link>
           </div>
 
           <section className="lobby-counter" aria-label="로비 중앙 매표소">
@@ -104,9 +106,13 @@ export default function HomePage() {
               )}
             </div>
           </div>
-          <div className="lobby-mat" aria-hidden>
-            <span className="lobby-mat-label">ENTER</span>
-          </div>
+          <Link
+            href={user ? '/room' : '/login'}
+            className="lobby-mat"
+            aria-label={user ? '내 방' : '입장 후 내 방'}
+          >
+            <span className="lobby-mat-label">MY ROOM</span>
+          </Link>
         </div>
       </div>
     </main>

@@ -10,4 +10,8 @@ export const envValidationSchema = Joi.object({
   [EnvKeys.POSTGRES_PASSWORD]: Joi.string().optional(),
   [EnvKeys.POSTGRES_DB]: Joi.string().optional(),
   [EnvKeys.API_JWT_SECRET]: Joi.string().min(16).required(),
+  [EnvKeys.TMDB_ACCESS_TOKEN]: Joi.string().required(),
+  [EnvKeys.TMDB_BASE_URL]: Joi.string()
+    .uri()
+    .default('https://api.themoviedb.org/3'),
 });
