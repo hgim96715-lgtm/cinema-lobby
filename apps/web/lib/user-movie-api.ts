@@ -1,7 +1,8 @@
-import {
+import type {
   ToggleUserMovieResult,
+  UserMovieCounts,
   UserMovieKind,
-  UserMovieListItem,
+  UserMovieListPage,
   UserMovieMarks,
 } from '@cinemo/shared';
 import { apiFetch } from './api';
@@ -24,8 +25,18 @@ export function getUserMovieMarksRequest(token: string, tmdbId: number) {
   });
 }
 
-export function listUserMoviesRequest(token: string, kind: UserMovieKind) {
-  return apiFetch<UserMovieListItem[]>(`/user-movies?kind=${kind}`, {
-    token,
-  });
+export function listUserMoviesRequest(
+  token: string,
+  kind: UserMovieKind,
+  page = 1,
+  limit = 24,
+) {
+  return apiFetch<UserMovieListPage>(
+    `/user-movies?kind=${kind}&page=${page}&limit=${limit}`,
+    { token },
+  );
+}
+
+export function getUserMovieCountsRequest(token: string) {
+  return apiFetch<UserMovieCounts>('/user-movies/counts', { token });
 }

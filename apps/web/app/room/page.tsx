@@ -1,16 +1,38 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import type { UserMovieCounts } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
 import { GuestFigure } from '@/components/lobby/GuestFigure';
+import { getUserMovieCountsRequest } from '@/lib/user-movie-api';
 import '../styles/room.css';
 import '../styles/lobby.css';
 
 export default function MyRoomPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const [counts, setCounts] = useState<UserMovieCounts | null>(null);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    let cancelled = false;
+    async function loadCounts() {
+      try {
+        const res = await getUserMovieCountsRequest(accessToken!);
+        if (!cancelled) setCounts(res);
+      } catch {
+        if (!cancelled) setCounts(null);
+      }
+    }
+    void loadCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken]);
 
   if (!user) {
     return (
@@ -46,6 +68,17 @@ export default function MyRoomPage() {
           <p className="room-me-name">{user.nickname}</p>
         </div>
 
+        <nav className="room-doors" aria-label="영화 선반">
+          <Link href="/room/wish" className="room-door">
+            <span className="room-door-label">찜 선반</span>
+            <span className="room-door-count">{counts?.wish ?? '—'}</span>
+          </Link>
+          <Link href="/room/watched" className="room-door">
+            <span className="room-door-label">봤어요 선반</span>
+            <span className="room-door-count">{counts?.watched ?? '—'}</span>
+          </Link>
+        </nav>
+
         <nav className="room-zones" aria-label="내 방 구역">
           <button type="button" className="room-zone" disabled title="준비 중">
             프로필
@@ -64,7 +97,7 @@ export default function MyRoomPage() {
           로비로
         </Link>
         <button type="button" className="lobby-btn" onClick={logout}>
-          로그아웃
+          로그아웃아웃
         </button>
       </div>
     </main>

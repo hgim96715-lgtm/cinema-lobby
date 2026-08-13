@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   ParseEnumPipe,
   ParseIntPipe,
@@ -32,11 +33,18 @@ export class UserMovieController {
     return this.userMovieService.getMarks(userId, tmdbId);
   }
 
+  @Get('counts')
+  getCounts(@UserId() userId: string) {
+    return this.userMovieService.getCounts(userId);
+  }
+
   @Get()
   listByKind(
     @UserId() userId: string,
     @Query('kind', new ParseEnumPipe(UserMovieKind)) kind: UserMovieKind,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(24), ParseIntPipe) limit: number,
   ) {
-    return this.userMovieService.listByKind(userId, kind);
+    return this.userMovieService.listByKind(userId, kind, page, limit);
   }
 }

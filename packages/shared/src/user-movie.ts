@@ -21,3 +21,14 @@ export type UserMovieListItem = {
   updatedAt: string;
   movie: GachaMovie;
 };
+
+export type UserMovieListPage = {
+  items: UserMovieListItem[];
+  page: number;
+  total: number;
+  hasMore: boolean;
+};
+export type UserMovieCounts = {
+  wish: number;
+  watched: number;
+};

@@ -39,18 +39,42 @@ export class UserMovieService {
     };
   }
 
-  async listByKind(userId: string, kind: UserMovieKind) {
-    const rows = await this.prisma.userMovie.findMany({
-      where: { userId, kind },
-      orderBy: { updatedAt: 'desc' },
-      select: { tmdbId: true, updatedAt: true },
-    });
-    return Promise.all(
+  async listByKind(userId: string, kind: UserMovieKind, page = 1, limit = 24) {
+    const take = Math.min(Math.max(limit, 1), 48);
+    const safePage = Math.max(page, 1);
+    const skip = (safePage - 1) * take;
+
+    const [total, rows] = await Promise.all([
+      this.prisma.userMovie.count({ where: { userId, kind } }),
+      this.prisma.userMovie.findMany({
+        where: { userId, kind },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take,
+        select: { tmdbId: true, updatedAt: true },
+      }),
+    ]);
+
+    const items = await Promise.all(
       rows.map(async (row) => ({
         tmdbId: row.tmdbId,
         updatedAt: row.updatedAt.toISOString(),
         movie: await this.tmdbService.getMovie(row.tmdbId),
       })),
     );
+    return {
+      items,
+      page: safePage,
+      total,
+      hasMore: skip + rows.length < total,
+    };
+  }
+
+  async getCounts(userId: string) {
+    const [wish, watched] = await Promise.all([
+      this.prisma.userMovie.count({ where: { userId, kind: 'wish' } }),
+      this.prisma.userMovie.count({ where: { userId, kind: 'watched' } }),
+    ]);
+    return { wish, watched };
   }
 }
