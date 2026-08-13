@@ -646,10 +646,11 @@ body {
 
 .lobby-staff {
   display: flex;
-  gap: 1.1rem;
-  justify-content: center;
-  margin-bottom: -0.15rem;
-  opacity: 0.45;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.95rem;
+  margin-bottom: 0.15rem;
+  opacity: 0.78;
   transition: opacity 900ms ease;
 }
 
@@ -664,9 +665,17 @@ body {
   gap: 0.15rem;
 }
 
+.lobby-speech--staff {
+  max-width: 13rem;
+  font-size: 0.8rem;
+}
+
 .lobby-staff-head {
-  width: 1.05rem;
-  height: 1.05rem;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
   border-radius: 50%;
   border: 1px solid rgb(243 239 230 / 0.28);
   background: rgb(243 239 230 / 0.07);
@@ -683,6 +692,39 @@ body {
 .lobby--lit .lobby-staff-head,
 .lobby--lit .lobby-staff-body {
   border-color: rgb(212 181 106 / 0.4);
+}
+
+.lobby-face {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 0.18rem 0.28rem;
+  width: 70%;
+  height: 70%;
+}
+
+.lobby-face-eye {
+  width: 0.16rem;
+  height: 0.16rem;
+  border-radius: 50%;
+  background: rgb(243 239 230 / 0.55);
+}
+
+.lobby--lit .lobby-face-eye {
+  background: rgb(212 181 106 / 0.85);
+}
+
+.lobby-face-mouth {
+  width: 0.42rem;
+  height: 0.22rem;
+  border: 1.5px solid rgb(243 239 230 / 0.5);
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.lobby--lit .lobby-face-mouth {
+  border-color: rgb(212 181 106 / 0.75);
 }
 
 .lobby-desk {
@@ -777,16 +819,67 @@ body {
 
 /* 손님 + 입구 매트 */
 .lobby-guest {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.9rem;
   opacity: 0.5;
   transition: opacity 900ms ease;
 }
 
 .lobby--lit .lobby-guest {
   opacity: 1;
+}
+
+.lobby-speech {
+  position: relative;
+  max-width: 15rem;
+  margin: 0 0 0.35rem;
+  padding: 0.7rem 1rem 0.75rem;
+  border: 1.5px solid rgb(55 48 40 / 0.2);
+  border-radius: 1.35rem 1.35rem 1.35rem 1.2rem;
+  background: linear-gradient(180deg, #fbf6eb 0%, #f3ead8 100%);
+  color: #3a342c;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.55);
+  animation: lobby-speech-pop 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lobby-speech--muted {
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+.lobby-speech::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.42rem;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-right: 1.5px solid rgb(55 48 40 / 0.2);
+  border-bottom: 1.5px solid rgb(55 48 40 / 0.2);
+  background: #f3ead8;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 2px 2px 6px rgb(0 0 0 / 0.06);
+}
+
+@keyframes lobby-speech-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .lobby-guest-row {
@@ -840,8 +933,11 @@ body {
 }
 
 .lobby-guest-head {
-  width: 1.25rem;
-  height: 1.25rem;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
   border-radius: 50%;
   border: 1px solid rgb(243 239 230 / 0.3);
   background: rgb(243 239 230 / 0.07);

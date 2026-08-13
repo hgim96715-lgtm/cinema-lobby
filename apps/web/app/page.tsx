@@ -1,23 +1,17 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
+import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
-
-function Staff() {
-  return (
-    <div className="lobby-staff" aria-hidden>
-      <span className="lobby-staff-person">
-        <span className="lobby-staff-head" />
-        <span className="lobby-staff-body" />
-      </span>
-    </div>
-  );
-}
+import { TicketBooth } from '@/components/lobby/TicketBooth';
+import { staffSpeech, guestSpeech, guestTicketLabel } from '@/lib/lobby-speech';
+import { Staff } from '@/components/lobby/Staff';
+import { GuestFigure } from '@/components/lobby/GuestFigure';
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
-  const clearSession = useAuthStore((s) => s.clearSession);
   const lit = Boolean(user);
+  const [ticketStatus, setTicketStatus] = useState<TicketStatus | null>(null);
 
   return (
     <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>
@@ -66,50 +60,8 @@ export default function HomePage() {
           </div>
 
           <section className="lobby-counter" aria-label="로비 중앙 매표소">
-            <Staff />
-            <div className="lobby-desk">
-              <p className="lobby-desk-title">티켓 발급</p>
-              {lit ? (
-                <>
-                  <p className="lobby-desk-copy">
-                    오늘 뽑기 1회권을 받아 가세요.
-                  </p>
-                  <div className="lobby-desk-actions">
-                    <button
-                      type="button"
-                      className="lobby-btn lobby-btn--primary"
-                      disabled
-                      title="Ticket API 연결 예정"
-                    >
-                      발급받기
-                    </button>
-                    <button
-                      type="button"
-                      className="lobby-btn"
-                      onClick={clearSession}
-                    >
-                      나가기
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="lobby-desk-copy">
-                    조명이 꺼져 있습니다.
-                    <br />
-                    입장 후 티켓을 발급할 수 있어요.
-                  </p>
-                  <div className="lobby-desk-actions">
-                    <Link href="/login" className="lobby-btn lobby-btn--primary">
-                      입장하기
-                    </Link>
-                    <Link href="/register" className="lobby-btn">
-                      회원가입
-                    </Link>
-                  </div>
-                </>
-              )}
-            </div>
+            <Staff speech={staffSpeech(user?.nickname, ticketStatus)} />
+            <TicketBooth onStatusChange={setTicketStatus} />
             <p className="lobby-counter-label">로비 중앙</p>
           </section>
 
@@ -123,22 +75,25 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div
-          className="lobby-guest"
-          aria-label={user ? user.nickname : '손님'}
-        >
+        <div className="lobby-guest" aria-label={user ? user.nickname : '손님'}>
+          {user ? (
+            <p
+              className="lobby-speech"
+              role="status"
+              key={ticketStatus ?? 'none'}
+            >
+              {guestSpeech(ticketStatus)}
+            </p>
+          ) : null}
           <div className="lobby-guest-row">
-            <div className="lobby-guest-figure" aria-hidden>
-              <span className="lobby-guest-head" />
-              <span className="lobby-guest-body" />
-            </div>
+            <GuestFigure />
             <div className="lobby-guest-info">
               {user ? (
                 <>
                   <p className="lobby-guest-name">{user.nickname}</p>
                   <p className="lobby-guest-ticket">
                     <span className="lobby-ticket-stub">TICKET</span>
-                    아직 없음
+                    {guestTicketLabel(ticketStatus)}
                   </p>
                 </>
               ) : (
