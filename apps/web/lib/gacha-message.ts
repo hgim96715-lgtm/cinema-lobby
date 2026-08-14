@@ -10,7 +10,7 @@ export function gachaMessage(
 ) {
   switch (capsulePhase) {
     case 'open':
-      return `${usedLabel} 결과입니다. (영화·쪽지는 다음에)`;
+      return `${usedLabel} 결과입니다.`;
     case 'ready':
       return '캡슐을 클릭해보세요!';
     case 'dropping':

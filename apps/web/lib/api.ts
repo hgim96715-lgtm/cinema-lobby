@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3050";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3050';
 
 export async function apiFetch<T>(
   path: string,
@@ -8,7 +8,7 @@ export async function apiFetch<T>(
   const res = await fetch(`${API_URL}/v1${path}`, {
     ...rest,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
@@ -17,5 +17,6 @@ export async function apiFetch<T>(
     const body = await res.json().catch(() => null);
     throw new Error(body?.message ?? `HTTP ${res.status}`);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }

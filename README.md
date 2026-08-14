@@ -53,11 +53,11 @@ Redis · FCM은 나중.
 - 전광판(매표소 위): 오늘 입장수 · 추이 그래프
 - 중앙 매표소: 환영 / 로그인 유도 / 티켓 발급
 - 티켓: 오늘 뽑기 1회권
-- 뽑기방: 티켓으로 영화 + 쪽지
-- 후기방: 오늘의 추천 포스터 벽(중복 가능) · 짧은 후기
-- 카페테리아: 채팅·수다 · 실시간(WebSocket)
+- 뽑기방: 티켓으로 영화 뽑기
+- 후기방: REVIEW BALL · 짧은 후기·별점 · /review
+- 카페테리아: 북적 짧은 채팅 · presence (WebSocket) · 명대사방은 별도·더 나중
 
 클라이언트: **웹(Next) 먼저** → 나중에 `apps/mobile`(Expo) 추가.
 
 영화 포스터/메타는 TMDB API 사용.  
-로컬 메모: [docs/web/tmdb.md](docs/web/tmdb.md) · [docs/web/gacha.md](docs/web/gacha.md) (gitignore)
+로컬 메모: [docs/web/tmdb.md](docs/web/tmdb.md) · [docs/web/gacha.md](docs/web/gacha.md) · [docs/web/review.md](docs/web/review.md) (gitignore)

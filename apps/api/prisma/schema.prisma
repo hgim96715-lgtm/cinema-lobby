@@ -19,15 +19,17 @@ enum UserRole {
 }
 
 model User {
-    id           String      @id @default(uuid(7)) @db.Uuid
-    email        String      @unique
-    passwordHash String      @map("password_hash")
-    nickname     String      @unique
-    role         UserRole    @default(user)
-    createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
-    updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
-    tickets      Ticket[]
-    userMovies   UserMovie[]
+    id              String           @id @default(uuid(7)) @db.Uuid
+    email           String           @unique
+    passwordHash    String           @map("password_hash")
+    nickname        String           @unique
+    role            UserRole         @default(user)
+    createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+    tickets         Ticket[]
+    userMovies      UserMovie[]
+    reviewPosts     ReviewPost[]
+    reviewPostLikes ReviewPostLike[]
 
     @@map("users")
 }
@@ -87,4 +89,33 @@ model MoviePool {
     syncedAt        DateTime @default(now()) @map("synced_at") @db.Timestamptz(3)
 
     @@map("movie_pool")
+}
+
+model ReviewPost {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    userId    String   @map("user_id") @db.Uuid
+    tmdbId    Int      @map("tmdb_id")
+    body      String   @db.Text
+    rating    Float
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    user            User             @relation(fields: [userId], references: [id])
+    reviewPostLikes ReviewPostLike[]
+
+    @@index([createdAt(sort: Desc)])
+    @@map("review_posts")
+}
+
+model ReviewPostLike {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    postId    String   @map("post_id") @db.Uuid
+    userId    String   @map("user_id") @db.Uuid
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+    post ReviewPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+    user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([postId, userId])
+    @@map("review_post_likes")
 }

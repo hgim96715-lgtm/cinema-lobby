@@ -4,7 +4,8 @@
   --background: #0e1014;
   --foreground: #f3efe6;
   --font-sans: var(--font-geist-sans);
-  --font-display: var(--font-cormorant);
+  --font-display: var(--font-cormorant), var(--font-noto-serif-kr);
+  --font-display-kr: var(--font-noto-serif-kr);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -12,7 +13,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-display: var(--font-cormorant);
+  --font-display: var(--font-cormorant), var(--font-noto-serif-kr);
   --font-mono: var(--font-geist-mono);
 }
 

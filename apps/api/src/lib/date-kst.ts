@@ -20,3 +20,17 @@ export function toKstDate(instant: Date = new Date()): Date {
   }).format(instant);
   return new Date(`${parts}T00:00:00.000Z`);
 }
+
+/** KST 달력 ‘오늘’의 [start, end) — Timestamptz 필터용 */
+
+export function kstTodayRange(now = new Date()): { start: Date; end: Date } {
+  const day = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+  const start = new Date(`${day}T00:00:00+09:00`);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}

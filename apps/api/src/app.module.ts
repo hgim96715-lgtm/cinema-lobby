@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './ticket/ticket.module';
 import { TmdbModule } from './tmdb/tmdb.module';
 import { UserMovieModule } from './user-movie/user-movie.module';
+import { ReviewPostModule } from './review-post/review-post.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserMovieModule } from './user-movie/user-movie.module';
     TicketModule,
     TmdbModule,
     UserMovieModule,
+    ReviewPostModule,
   ],
   controllers: [AppController],
   providers: [AppService],

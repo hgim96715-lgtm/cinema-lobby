@@ -97,7 +97,7 @@ export default function MyRoomPage() {
           로비로
         </Link>
         <button type="button" className="lobby-btn" onClick={logout}>
-          로그아웃아웃
+          로그아웃
         </button>
       </div>
     </main>

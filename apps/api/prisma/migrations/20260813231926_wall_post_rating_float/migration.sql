@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "wall_posts" ALTER COLUMN "rating" SET DATA TYPE DOUBLE PRECISION;
