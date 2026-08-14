@@ -2,18 +2,21 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
 import { getTodayTicketRequest, issueTicketRequest } from '@/lib/ticket-api';
+import { staffSpeech } from '@/lib/lobby-speech';
+import { Staff } from '@/components/lobby/Staff';
 
 type Props = {
   onStatusChange: (status: TicketStatus | null) => void;
 };
 
 export function TicketBooth({ onStatusChange }: Props) {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const clearSession = useAuthStore((s) => s.clearSession);
 
   const [status, setStatus] = useState<TicketStatus | null>(null);
   const [issuing, setIssuing] = useState(false);
@@ -95,6 +98,18 @@ export function TicketBooth({ onStatusChange }: Props) {
     }
   }
 
+  const canIssue = Boolean(user) && (status === 'none' || status === null);
+
+  function onStaffPersonClick() {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (canIssue && !issuing) {
+      void issueTicket();
+    }
+  }
+
   const ticketOverlay =
     mounted && showTicket && user
       ? createPortal(
@@ -124,51 +139,63 @@ export function TicketBooth({ onStatusChange }: Props) {
         )
       : null;
 
-  if (!user) {
-    return (
-      <div className="lobby-desk">
-        <p className="lobby-desk-title">티켓 발급</p>
-        <div className="lobby-desk-actions">
-          <Link href="/login" className="lobby-btn lobby-btn--primary">
-            입장하기
-          </Link>
-          <Link href="/register" className="lobby-btn">
-            회원가입
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const staffPersonLabel = !user
+    ? '직원 · 입장하기'
+    : canIssue
+      ? '직원 · 티켓 발급받기'
+      : '직원';
 
-  const canIssue = status === 'none' || status === null;
   return (
     <>
+      <Staff
+        speech={staffSpeech(user?.nickname, status)}
+        actionLabel={canIssue ? (issuing ? '발급 중…' : '발급받기') : undefined}
+        actionDisabled={issuing}
+        onAction={canIssue ? () => void issueTicket() : undefined}
+        onPersonClick={!user || canIssue ? onStaffPersonClick : undefined}
+        personLabel={staffPersonLabel}
+      />
+
       <div className="lobby-desk">
-        <p className="lobby-desk-title">티켓 발급</p>
+        <div className="lobby-desk-awning" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="lobby-desk-plate">
+          <p className="lobby-desk-title">TICKET</p>
+          <p className="lobby-desk-subtitle">티켓 창구</p>
+        </div>
         {error ? <p className="lobby-desk-copy">{error}</p> : null}
         <div className="lobby-desk-actions">
-          {status === 'issued' ? (
-            <Link href="/gacha" className="lobby-btn lobby-btn--primary">
-              뽑기방
-            </Link>
+          {!user ? (
+            <>
+              <Link href="/login" className="lobby-btn lobby-btn--primary">
+                입장하기
+              </Link>
+              <Link href="/register" className="lobby-btn">
+                회원가입
+              </Link>
+            </>
+          ) : status === 'issued' ? (
+            <p className="lobby-desk-status">
+              <span className="lobby-desk-status-kicker">오늘 티켓</span>
+              <span className="lobby-desk-status-value">사용 가능</span>
+            </p>
           ) : status === 'used' ? (
-            <button type="button" className="lobby-btn lobby-btn--primary" disabled>
-              오늘 사용함
-            </button>
+            <p className="lobby-desk-status lobby-desk-status--used">
+              <span className="lobby-desk-status-kicker">오늘 티켓</span>
+              <span className="lobby-desk-status-value">사용 완료</span>
+            </p>
           ) : (
-            <button
-              type="button"
-              className="lobby-btn lobby-btn--primary"
-              disabled={issuing || !canIssue}
-              onClick={issueTicket}
-            >
-              발급받기
-            </button>
+            <span className="lobby-desk-hint">직원에게 티켓을 받아보세요</span>
           )}
-          <button type="button" className="lobby-btn" onClick={clearSession}>
-            나가기
-          </button>
         </div>
+        <div className="lobby-desk-rail" aria-hidden />
       </div>
       {ticketOverlay}
     </>
