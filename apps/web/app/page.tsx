@@ -8,11 +8,13 @@ import { TicketBooth } from '@/components/lobby/TicketBooth';
 import { guestTicketLabel } from '@/lib/lobby-speech';
 import { GuestFigure } from '@/components/lobby/GuestFigure';
 import './styles/lobby.css';
+import { kstLobbyDateLabel } from '@/lib/date-kst';
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const lit = Boolean(user);
   const [ticketStatus, setTicketStatus] = useState<TicketStatus | null>(null);
+  const lobbyDateLabel = kstLobbyDateLabel();
 
   return (
     <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>
@@ -31,11 +33,10 @@ export default function HomePage() {
             </span>
           </div>
           <h1 className="lobby-board-brand">CINEMO</h1>
-          <div className="lobby-board" aria-label="전광판 분석">
-            <p className="lobby-board-kicker">전광판 분석</p>
-            <div className="lobby-board-track">
+          <p className="lobby-board-date">{lobbyDateLabel}</p>
+          <div className="lobby-board" aria-label="전광판">
+            <div className="lobby-board-slots">
               <article className="lobby-chart">
-                <p className="lobby-chart-label">오늘 입장</p>
                 <div className="lobby-chart-viz" aria-hidden>
                   <div className="lobby-chart-plot">
                     <span />
@@ -46,27 +47,40 @@ export default function HomePage() {
                     <span />
                   </div>
                 </div>
-                <p className="lobby-chart-value">—</p>
+                <div className="lobby-chart-meta">
+                  <p className="lobby-chart-label">오늘 입장</p>
+                  <p className="lobby-chart-value">—</p>
+                </div>
               </article>
               <article className="lobby-chart">
-                <p className="lobby-chart-label">오늘의 후기</p>
-                <div className="lobby-chart-viz lobby-chart-viz--poster" aria-hidden>
+                <div
+                  className="lobby-chart-viz lobby-chart-viz--poster"
+                  aria-hidden
+                >
                   <div className="lobby-chart-poster" />
                   <div className="lobby-chart-poster-meta">
                     <span className="lobby-chart-poster-title">—</span>
                   </div>
                 </div>
-                <p className="lobby-chart-value">—</p>
+                <div className="lobby-chart-meta">
+                  <p className="lobby-chart-label">오늘의 후기</p>
+                  <p className="lobby-chart-value">—</p>
+                </div>
               </article>
               <article className="lobby-chart">
-                <p className="lobby-chart-label">주간 하이라이트</p>
-                <div className="lobby-chart-viz lobby-chart-viz--poster" aria-hidden>
+                <div
+                  className="lobby-chart-viz lobby-chart-viz--poster"
+                  aria-hidden
+                >
                   <div className="lobby-chart-poster" />
                   <div className="lobby-chart-poster-meta">
                     <span className="lobby-chart-poster-title">—</span>
                   </div>
                 </div>
-                <p className="lobby-chart-value">—</p>
+                <div className="lobby-chart-meta">
+                  <p className="lobby-chart-label">주간 하이라이트</p>
+                  <p className="lobby-chart-value">—</p>
+                </div>
               </article>
             </div>
           </div>
@@ -106,9 +120,7 @@ export default function HomePage() {
             </div>
             <p className="lobby-guest-ticket">
               <span className="lobby-ticket-stub">TICKET</span>
-              {user
-                ? guestTicketLabel(ticketStatus)
-                : '입장 전 · 티켓 없음'}
+              {user ? guestTicketLabel(ticketStatus) : '입장 전 · 티켓 없음'}
             </p>
             <Link
               href={user ? '/room' : '/login'}
