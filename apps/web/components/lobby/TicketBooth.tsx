@@ -149,9 +149,6 @@ export function TicketBooth({ onStatusChange }: Props) {
     <>
       <Staff
         speech={staffSpeech(user?.nickname, status)}
-        actionLabel={canIssue ? (issuing ? '발급 중…' : '발급받기') : undefined}
-        actionDisabled={issuing}
-        onAction={canIssue ? () => void issueTicket() : undefined}
         onPersonClick={!user || canIssue ? onStaffPersonClick : undefined}
         personLabel={staffPersonLabel}
       />
@@ -192,7 +189,7 @@ export function TicketBooth({ onStatusChange }: Props) {
               <span className="lobby-desk-status-value">사용 완료</span>
             </p>
           ) : (
-            <span className="lobby-desk-hint">직원에게 티켓을 받아보세요</span>
+            <span className="lobby-desk-hint">직원을 눌러 티켓을 받아보세요</span>
           )}
         </div>
         <div className="lobby-desk-rail" aria-hidden />
