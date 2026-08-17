@@ -9,7 +9,7 @@ import { UpdateReviewPostDto } from './dto/update-review-post.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { TmdbService } from '../tmdb/tmdb.service';
 import { ReviewPostItem } from '@cinemo/shared';
-import { kstTodayRange, todayKstDate } from '../lib/date-kst';
+import { kstTodayRange } from '../lib/date-kst';
 
 @Injectable()
 export class ReviewPostService {
@@ -60,19 +60,7 @@ export class ReviewPostService {
     if (postedToday)
       throw new BadRequestException('오늘 한 번만 후기할 수 있습니다.');
 
-    const ticket = await this.prisma.ticket.findUnique({
-      where: { userId_ticketDate: { userId, ticketDate: todayKstDate() } },
-    });
-    const fromTicket =
-      ticket?.status === 'used' && ticket.tmdbId === dto.tmdbId;
-
-    const watched = await this.prisma.userMovie.findFirst({
-      where: { userId, tmdbId: dto.tmdbId, kind: 'watched' },
-    });
-    if (!fromTicket && !watched)
-      throw new BadRequestException(
-        '오늘 뽑거나 오늘 봤어요 표시한 영화만 후기할 수 있습니다.',
-      );
+    await this.tmdbService.getMovieCached(dto.tmdbId);
 
     const post = await this.prisma.reviewPost.create({
       data: {
@@ -87,6 +75,7 @@ export class ReviewPostService {
       },
     });
     const movie = await this.tmdbService.getMovieCached(post.tmdbId);
+
     return {
       id: post.id,
       tmdbId: post.tmdbId,

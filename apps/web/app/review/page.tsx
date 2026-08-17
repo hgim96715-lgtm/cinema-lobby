@@ -12,12 +12,11 @@ import {
 import { tmdbPosterUrl } from '@/lib/tmdb-image';
 import { Heart, Star, X } from 'lucide-react';
 import '../styles/review.css';
-import { useAuthStore } from '@/lib/auth-store';
-import { listUserMoviesRequest } from '@/lib/user-movie-api';
-import { getTodayTicketRequest } from '@/lib/ticket-api';
-import { reviewPanelHint } from '@/lib/review-message';
+import { useAuthStore } from '@/lib/auth-store';import { reviewPanelHint } from '@/lib/review-message';
 import { kstDateKey } from '@/lib/date-kst';
 import { capsuleLayout } from '@/lib/review-layout';
+import { searchMoviesRequest } from '@/lib/tmdb-api';
+import { normalizeSearchQuery } from '@/lib/search-query';
 
 export default function ReviewPage() {
   const [posts, setPosts] = useState<ReviewPostItem[]>([]);
@@ -29,6 +28,7 @@ export default function ReviewPage() {
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const [pickMovies, setPickMovies] = useState<GachaMovie[]>([]);
+  const [searching, setSearching] = useState(false);
   const [pickQuery, setPickQuery] = useState('');
   const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(null);
   const [body, setBody] = useState<string>('');
@@ -66,42 +66,48 @@ export default function ReviewPage() {
   }, [accessToken]);
 
   useEffect(() => {
-    if (!writingOpen || !accessToken) return;
+    if (!writingOpen || !accessToken || editingId) return;
+
+    const q = normalizeSearchQuery(pickQuery);
+
+    if (q.length < 2) {
+      setPickMovies([]);
+      setSelectedTmdbId(null);
+      return;
+    }
+
     let cancelled = false;
-    async function loadPickMovies() {
+    const timer = window.setTimeout(async () => {
+      setSearching(true);
       try {
-        const [today, watchedPage] = await Promise.all([
-          getTodayTicketRequest(accessToken!),
-          listUserMoviesRequest(accessToken!, 'watched', 1, 48),
-        ]);
+        const response = await searchMoviesRequest(accessToken, q);
         if (cancelled) return;
-        const map = new Map<number, GachaMovie>();
-        if (today.status === 'used' && today.movie) {
-          map.set(today.movie.id, today.movie);
-        }
-        for (const item of watchedPage.items) {
-          map.set(item.tmdbId, item.movie);
-        }
-        const list = [...map.values()];
+        const list = response.results.slice(0, 6);
         setPickMovies(list);
-        setSelectedTmdbId((prev) => {
-          if (prev != null && list.some((m) => m.id === prev)) return prev;
-          return list[0]?.id ?? null;
-        });
+        setSelectedTmdbId((prev) =>
+          prev != null && list.some((m) => m.id === prev)
+            ? prev
+            : (list[0]?.id ?? null),
+        );
       } catch (error) {
-        if (!cancelled)
+        if (!cancelled) {
+          setPickMovies([]);
+          setSelectedTmdbId(null);
           setError(
             error instanceof Error
               ? error.message
-              : '후보를 불러오지 못했어요.',
+              : '검색 결과를 불러오는데 실패했어요.',
           );
+        }
+      } finally {
+        if (!cancelled) setSearching(false);
       }
-    }
-    void loadPickMovies();
+    }, 300);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, [writingOpen, accessToken]);
+  }, [accessToken, pickQuery, writingOpen, editingId]);
 
   function resetWriteForm() {
     setEditingId(null);
@@ -109,6 +115,7 @@ export default function ReviewPage() {
     setWritingOpen(false);
     setBody('');
     setRating(3);
+    setPickMovies([]);
     setPickQuery('');
     setSelectedTmdbId(null);
   }
@@ -152,10 +159,8 @@ export default function ReviewPage() {
     }
   }
 
-  const q = pickQuery.trim().toLowerCase();
-  const visiblePicks = (
-    q ? pickMovies.filter((m) => m.title.toLowerCase().includes(q)) : pickMovies
-  ).slice(0, 6);
+  const visiblePicks = pickMovies;
+  const pickQueryTrimmed = normalizeSearchQuery(pickQuery);
 
   const boardRows = Math.max(4, Math.ceil(posts.length / 7));
   const todayKey = kstDateKey();
@@ -481,53 +486,43 @@ export default function ReviewPage() {
             ) : (
               <>
                 <p className="review-paper-label">영화</p>
-                {pickMovies.length === 0 ? (
-                  <p className="review-paper-empty">
-                    봤어요 선반에 영화가 없어요.{' '}
-                    <Link href="/room">선반으로</Link>
-                  </p>
-                ) : (
-                  <>
-                    <input
-                      className="review-paper-search"
-                      type="search"
-                      value={pickQuery}
-                      onChange={(e) => setPickQuery(e.target.value)}
-                      placeholder="봤어요에서 제목 검색"
-                    />
-                    <div className="review-paper-picks">
-                      {visiblePicks.length === 0 ? (
-                        <p className="review-paper-empty">
-                          검색 결과가 없어요.
-                        </p>
-                      ) : (
-                        visiblePicks.map((movie) => (
-                          <button
-                            key={movie.id}
-                            type="button"
-                            className={`review-pick${selectedTmdbId === movie.id ? ' is-on' : ''}`}
-                            onClick={() => setSelectedTmdbId(movie.id)}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={
-                                tmdbPosterUrl(movie.poster_path, 'w185') ??
-                                undefined
-                              }
-                              alt=""
-                            />
-                            <span>{movie.title}</span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                    {!q && pickMovies.length > 6 ? (
-                      <p className="review-paper-hint">
-                        최근 6편 · 더 보려면 위에서 검색
-                      </p>
-                    ) : null}
-                  </>
-                )}
+                <input
+                  className="review-paper-search"
+                  type="search"
+                  value={pickQuery}
+                  onChange={(e) => setPickQuery(e.target.value)}
+                  placeholder="영화 제목 검색"
+                />
+                <div className="review-paper-picks">
+                  {pickQueryTrimmed.length < 2 ? (
+                    <p className="review-paper-empty">
+                      2글자 이상 입력해 주세요.
+                    </p>
+                  ) : searching ? (
+                    <p className="review-paper-empty">검색 중…</p>
+                  ) : visiblePicks.length === 0 ? (
+                    <p className="review-paper-empty">검색 결과가 없어요.</p>
+                  ) : (
+                    visiblePicks.map((movie) => (
+                      <button
+                        key={movie.id}
+                        type="button"
+                        className={`review-pick${selectedTmdbId === movie.id ? ' is-on' : ''}`}
+                        onClick={() => setSelectedTmdbId(movie.id)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={
+                            tmdbPosterUrl(movie.poster_path, 'w185') ??
+                            undefined
+                          }
+                          alt=""
+                        />
+                        <span>{movie.title}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
               </>
             )}
             <p className="review-paper-label">별점</p>
@@ -577,9 +572,7 @@ export default function ReviewPage() {
               <button
                 type="button"
                 className="review-ink-btn review-ink-btn--primary"
-                disabled={
-                  submitting || (!editingId && selectedTmdbId == null)
-                }
+                disabled={submitting || (!editingId && selectedTmdbId == null)}
                 onClick={() => void submitPost()}
               >
                 {editingId ? '저장' : '완성'}

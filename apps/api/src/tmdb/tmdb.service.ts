@@ -4,6 +4,10 @@ import { EnvKeys } from '../config/env.keys';
 import { PrismaService } from '../prisma/prisma.service';
 import type { MoviePool } from '../generated/prisma/client';
 import type { GachaMovie, MovieWithTags } from '@cinemo/shared';
+import {
+  normalizeSearchQuery,
+  searchQueryFallbacks,
+} from '../lib/search-query';
 
 type TmdbDiscoverMovie = {
   id: number;
@@ -218,5 +222,44 @@ export class TmdbService {
       language,
       append_to_response: 'credits',
     });
+  }
+
+  private async fetchSearchMovies(q: string, page: number) {
+    const data = await this.get<{
+      page: number;
+      total_pages: number;
+      results: TmdbDiscoverMovie[];
+    }>('/search/movie', {
+      query: q,
+      language: 'ko-KR',
+      include_adult: 'false',
+      page: String(page),
+    });
+    return {
+      page: data.page,
+      total_pages: data.total_pages,
+      results: data.results.map((m) => ({
+        id: m.id,
+        title: m.title,
+        overview: m.overview,
+        poster_path: m.poster_path,
+        release_date: m.release_date ?? '',
+      })),
+    };
+  }
+
+  async searchMovies(query: string, page = 1) {
+    const q = normalizeSearchQuery(query);
+    if (!q) return { page: 1, results: [] as GachaMovie[], total_pages: 0 };
+
+    let result = await this.fetchSearchMovies(q, page);
+    if (result.results.length > 0) return result;
+
+    for (const alt of searchQueryFallbacks(q)) {
+      result = await this.fetchSearchMovies(alt, page);
+      if (result.results.length > 0) return result;
+    }
+
+    return result;
   }
 }

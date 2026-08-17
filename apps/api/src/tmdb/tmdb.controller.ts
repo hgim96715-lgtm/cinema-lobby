@@ -33,7 +33,8 @@ export class TmdbController {
     name: 'machineId',
     required: false,
     example: 'thriller',
-    description: 'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
+    description:
+      'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
   })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   discover(
@@ -43,12 +44,23 @@ export class TmdbController {
     return this.tmdbService.discoverMovies(this.getFilters(machineId), page);
   }
 
+  @Get('search')
+  @ApiQuery({ name: 'q', required: true, example: '인셉션' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  search(
+    @Query('q') q: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  ) {
+    return this.tmdbService.searchMovies(q, page);
+  }
+
   @Post('seed-pool')
   @ApiQuery({
     name: 'machineId',
     required: false,
     example: 'thriller',
-    description: 'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
+    description:
+      'genre: random|thriller|action|comedy|romance|horror|sf|drama · country: kr|jp|us|fr|gb|cn|de|in',
   })
   @ApiQuery({ name: 'pages', required: false, example: 3 })
   seedPool(
