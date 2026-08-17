@@ -34,3 +34,25 @@ export function kstTodayRange(now = new Date()): { start: Date; end: Date } {
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 }
+
+/** KST 이번 주 월요일 00:00 ~ 다음 월요일 00:00 범위 */
+export function kstWeekRange(now = new Date()): { start: Date; end: Date } {
+  const { start: todayStart } = kstTodayRange(now);
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    weekday: 'short',
+  }).format(now);
+  const monOffset =
+    {
+      Mon: 0,
+      Tue: 1,
+      Wed: 2,
+      Thu: 3,
+      Fri: 4,
+      Sat: 5,
+      Sun: 6,
+    }[weekday] ?? 0;
+  const start = new Date(todayStart.getTime() - monOffset * 86400000);
+  const end = new Date(start.getTime() + 7 * 86400000);
+  return { start, end };
+}

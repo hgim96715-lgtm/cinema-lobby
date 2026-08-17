@@ -10,6 +10,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { TmdbModule } from './tmdb/tmdb.module';
 import { UserMovieModule } from './user-movie/user-movie.module';
 import { ReviewPostModule } from './review-post/review-post.module';
+import { LobbyBoardModule } from './lobby-board/lobby-board.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReviewPostModule } from './review-post/review-post.module';
     TmdbModule,
     UserMovieModule,
     ReviewPostModule,
+    LobbyBoardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

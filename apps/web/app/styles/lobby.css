@@ -155,8 +155,8 @@
 }
 
 .lobby-chart-viz {
-  height: 5.5rem;
-  padding: 0.5rem;
+  height: 7rem;
+  padding: 0.55rem 0.6rem;
   border: 1px solid rgb(243 239 230 / 0.12);
   border-radius: 0.55rem;
   background: rgb(0 0 0 / 0.28);
@@ -166,9 +166,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.12rem;
+  gap: 0.1rem;
   min-width: 0;
-  padding: 0.4rem 0.45rem 0.45rem;
+  padding: 0.38rem 0.55rem;
   border: 1px solid rgb(243 239 230 / 0.12);
   border-radius: 999px;
   background: rgb(0 0 0 / 0.28);
@@ -177,8 +177,8 @@
 
 .lobby-chart-label {
   margin: 0;
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
   color: var(--lobby-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -192,6 +192,170 @@
   background: rgb(0 0 0 / 0.35);
 }
 
+.lobby--lit .lobby-chart-label {
+  color: rgb(212 181 106 / 0.78);
+}
+
+/* 큰 숫자 + 보조 문구 + 미니 스파크 */
+.lobby-chart-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.lobby-chart-stat-primary {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: rgb(243 239 230 / 0.72);
+}
+
+.lobby--lit .lobby-chart-stat-primary {
+  color: rgb(243 232 200 / 0.95);
+  text-shadow: 0 0 12px rgb(212 181 106 / 0.25);
+}
+
+.lobby-chart-stat-secondary {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: rgb(243 239 230 / 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lobby--lit .lobby-chart-stat-secondary {
+  color: rgb(212 181 106 / 0.58);
+}
+
+.lobby-chart-spark {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  margin-top: auto;
+  opacity: 0.45;
+}
+
+.lobby-chart-spark--live {
+  opacity: 0.9;
+}
+
+.lobby-chart-spark-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.18rem;
+  height: 1.35rem;
+}
+
+.lobby-chart-spark--labeled .lobby-chart-spark-bars {
+  height: 1.15rem;
+}
+
+.lobby-chart-spark-bars span {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.06rem 0.06rem 0 0;
+  background: linear-gradient(
+    180deg,
+    rgb(212 181 106 / 0.7),
+    rgb(212 181 106 / 0.18)
+  );
+}
+
+.lobby-chart-spark-labels {
+  display: flex;
+  gap: 0.18rem;
+}
+
+.lobby-chart-spark-labels span {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.48rem;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  color: rgb(243 239 230 / 0.42);
+}
+
+.lobby--lit .lobby-chart-spark-labels span {
+  color: rgb(212 181 106 / 0.55);
+}
+
+/* 주간 TOP 3 리스트 */
+.lobby-chart-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.28rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lobby-chart-row {
+  display: grid;
+  grid-template-columns: 0.7rem minmax(0, 1fr) 2.2rem 0.9rem;
+  align-items: center;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.lobby-chart-row--empty {
+  opacity: 0.4;
+}
+
+.lobby-chart-row-rank {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(212 181 106 / 0.75);
+}
+
+.lobby-chart-row-title {
+  min-width: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: rgb(243 239 230 / 0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lobby-chart-row-bar {
+  display: block;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgb(243 239 230 / 0.08);
+  overflow: hidden;
+}
+
+.lobby-chart-row-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgb(212 181 106 / 0.35),
+    rgb(232 208 140 / 0.9)
+  );
+}
+
+.lobby-chart-row-count {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: rgb(212 181 106 / 0.7);
+}
+
+/* legacy plot (unused decorative fallback kept minimal) */
 .lobby-chart-plot {
   display: flex;
   align-items: flex-end;
@@ -200,15 +364,6 @@
   height: 100%;
   padding: 0.15rem 0.1rem 0;
   border-bottom: 1px solid rgb(243 239 230 / 0.1);
-  background:
-    linear-gradient(180deg, transparent 60%, rgb(212 181 106 / 0.05)),
-    repeating-linear-gradient(
-      180deg,
-      transparent,
-      transparent 7px,
-      rgb(243 239 230 / 0.03) 7px,
-      rgb(243 239 230 / 0.03) 8px
-    );
 }
 
 .lobby-chart-plot span {
@@ -219,16 +374,12 @@
   opacity: 0.45;
 }
 
-.lobby--lit .lobby-chart-plot span {
-  opacity: 0.9;
-}
-
-.lobby-chart-plot span:nth-child(1) { height: 42%; }
-.lobby-chart-plot span:nth-child(2) { height: 68%; }
-.lobby-chart-plot span:nth-child(3) { height: 55%; }
-.lobby-chart-plot span:nth-child(4) { height: 82%; }
-.lobby-chart-plot span:nth-child(5) { height: 70%; }
-.lobby-chart-plot span:nth-child(6) { height: 90%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(1) { height: 42%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(2) { height: 68%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(3) { height: 55%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(4) { height: 82%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(5) { height: 70%; }
+.lobby-chart-plot:not(.lobby-chart-plot--data):not(.lobby-chart-plot--rank) span:nth-child(6) { height: 90%; }
 
 .lobby--lit .lobby-chart-plot {
   background:

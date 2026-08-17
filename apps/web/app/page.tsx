@@ -8,83 +8,19 @@ import { TicketBooth } from '@/components/lobby/TicketBooth';
 import { guestTicketLabel } from '@/lib/lobby-speech';
 import { GuestFigure } from '@/components/lobby/GuestFigure';
 import './styles/lobby.css';
-import { kstLobbyDateLabel } from '@/lib/date-kst';
+import { LobbyBoard } from '@/components/lobby/LobbyBoard';
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const lit = Boolean(user);
   const [ticketStatus, setTicketStatus] = useState<TicketStatus | null>(null);
-  const lobbyDateLabel = kstLobbyDateLabel();
 
   return (
     <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>
       <div className="lobby-atmosphere" aria-hidden />
 
       <div className="lobby-stage">
-        <section className="lobby-board-block">
-          <div className="lobby-board-lights" aria-hidden>
-            <span className="lobby-lamp">
-              <span className="lobby-lamp-stem" />
-              <span className="lobby-lamp-shade" />
-            </span>
-            <span className="lobby-lamp">
-              <span className="lobby-lamp-stem" />
-              <span className="lobby-lamp-shade" />
-            </span>
-          </div>
-          <h1 className="lobby-board-brand">CINEMO</h1>
-          <p className="lobby-board-date">{lobbyDateLabel}</p>
-          <div className="lobby-board" aria-label="전광판">
-            <div className="lobby-board-slots">
-              <article className="lobby-chart">
-                <div className="lobby-chart-viz" aria-hidden>
-                  <div className="lobby-chart-plot">
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                </div>
-                <div className="lobby-chart-meta">
-                  <p className="lobby-chart-label">오늘 입장</p>
-                  <p className="lobby-chart-value">—</p>
-                </div>
-              </article>
-              <article className="lobby-chart">
-                <div
-                  className="lobby-chart-viz lobby-chart-viz--poster"
-                  aria-hidden
-                >
-                  <div className="lobby-chart-poster" />
-                  <div className="lobby-chart-poster-meta">
-                    <span className="lobby-chart-poster-title">—</span>
-                  </div>
-                </div>
-                <div className="lobby-chart-meta">
-                  <p className="lobby-chart-label">오늘의 후기</p>
-                  <p className="lobby-chart-value">—</p>
-                </div>
-              </article>
-              <article className="lobby-chart">
-                <div
-                  className="lobby-chart-viz lobby-chart-viz--poster"
-                  aria-hidden
-                >
-                  <div className="lobby-chart-poster" />
-                  <div className="lobby-chart-poster-meta">
-                    <span className="lobby-chart-poster-title">—</span>
-                  </div>
-                </div>
-                <div className="lobby-chart-meta">
-                  <p className="lobby-chart-label">주간 하이라이트</p>
-                  <p className="lobby-chart-value">—</p>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
+        <LobbyBoard />
 
         <div className="lobby-hall">
           <div className="lobby-doors lobby-doors--left">

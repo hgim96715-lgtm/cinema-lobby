@@ -14,3 +14,4 @@ export type TicketStatus = "none" | "issued" | "used";
 export * from "./gacha";
 export * from "./user-movie";
 export * from "./review-post";
+export * from "./lobby-board";

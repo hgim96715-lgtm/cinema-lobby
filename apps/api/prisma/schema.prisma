@@ -30,6 +30,7 @@ model User {
     userMovies      UserMovie[]
     reviewPosts     ReviewPost[]
     reviewPostLikes ReviewPostLike[]
+    lobbyVisits     LobbyVisit[]
 
     @@map("users")
 }
@@ -118,4 +119,18 @@ model ReviewPostLike {
 
     @@unique([postId, userId])
     @@map("review_post_likes")
+}
+
+model LobbyVisit {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    userId    String   @map("user_id") @db.Uuid
+    visitDate DateTime @map("visit_date") @db.Date
+    visitedAt DateTime @default(now()) @map("visited_at") @db.Timestamptz(3)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, visitDate])
+    @@index([visitDate])
+    @@index([visitedAt])
+    @@map("lobby_visits")
 }
