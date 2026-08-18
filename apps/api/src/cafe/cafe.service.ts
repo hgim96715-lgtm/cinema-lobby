@@ -16,6 +16,7 @@ import {
   type CafeTableSnapshot,
 } from '@cinemo/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
 import { cafeDayRange } from '../lib/date-kst';
 import {
   applyFirstSeatSetup,
@@ -142,6 +143,31 @@ export class CafeService {
     };
   }
 
+  private async ensureSeat(
+    tableId: CafeTableId,
+    userId: string,
+    tx: Prisma.TransactionClient | PrismaService = this.prisma,
+  ): Promise<void> {
+    try {
+      await tx.cafeTableSeat.upsert({
+        where: { tableId_userId: { tableId, userId } },
+        create: { tableId, userId },
+        update: {},
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const existing = await tx.cafeTableSeat.findUnique({
+          where: { tableId_userId: { tableId, userId } },
+        });
+        if (existing) return;
+      }
+      throw error;
+    }
+  }
+
   private async ensureTableSessions(): Promise<void> {
     await this.prisma.cafeTableSession.createMany({
       data: CAFE_TABLE_SLOTS.map((tableId) => ({ tableId })),
@@ -149,7 +175,9 @@ export class CafeService {
     });
   }
 
-  private async getHallSnapshotDirect(now = new Date()): Promise<CafeHallResponse> {
+  private async getHallSnapshotDirect(
+    now = new Date(),
+  ): Promise<CafeHallResponse> {
     // closeIfNewCafeDay 내부에서 호출할 “직접 스냅샷” 쿼리.
     // getHall()을 쓰면 closeIfNewCafeDay()가 또 호출되어 루프/중복이 생길 수 있음.
     void now;
@@ -164,10 +192,14 @@ export class CafeService {
     return {
       tables: rows.map((row) => this.toSnapshot(row)),
       cafeJustClosed: false,
+      myTableId: null,
     };
   }
 
-  async getHall(now = new Date()): Promise<CafeHallResponse> {
+  async getHall(
+    userId?: string,
+    now = new Date(),
+  ): Promise<CafeHallResponse> {
     const cafeJustClosed = await this.closeIfNewCafeDay(now);
     await this.ensureTableSessions();
     const rows = await this.prisma.cafeTableSession.findMany({
@@ -175,9 +207,22 @@ export class CafeService {
       include: { _count: { select: { seats: true } } },
       orderBy: { tableId: 'asc' },
     });
+
+    let myTableId: CafeTableId | null = null;
+    if (userId) {
+      const seat = await this.prisma.cafeTableSeat.findFirst({
+        where: { userId },
+        select: { tableId: true },
+      });
+      if (seat && isCafeTableId(seat.tableId)) {
+        myTableId = seat.tableId;
+      }
+    }
+
     return {
       tables: rows.map((row) => this.toSnapshot(row)),
       cafeJustClosed,
+      myTableId,
     };
   }
 
@@ -233,6 +278,17 @@ export class CafeService {
     }
 
     if (session.seats.length === 0) {
+      const nextLabel = setup?.label?.trim() || null;
+      if (nextLabel) {
+        const duplicate = await this.prisma.cafeTableSession.findFirst({
+          where: {
+            tableId: { not: tableId },
+            label: { equals: nextLabel, mode: 'insensitive' },
+          },
+        });
+        if (duplicate)
+          throw new BadRequestException('이미 사용 중인 테이블 이름이에요.');
+      }
       const next = applyFirstSeatSetup(snapshot, setup);
       const shouldUpdateSession =
         setup?.label !== undefined ||
@@ -246,18 +302,10 @@ export class CafeService {
             data: { label: next.label, access: next.access },
           });
         }
-        await tx.cafeTableSeat.upsert({
-          where: { tableId_userId: { tableId, userId } },
-          create: { tableId, userId },
-          update: {},
-        });
+        await this.ensureSeat(tableId, userId, tx);
       });
     } else {
-      await this.prisma.cafeTableSeat.upsert({
-        where: { tableId_userId: { tableId, userId } },
-        create: { tableId, userId },
-        update: {},
-      });
+      await this.ensureSeat(tableId, userId);
     }
 
     const updated = await this.prisma.cafeTableSession.findFirstOrThrow({
@@ -282,15 +330,21 @@ export class CafeService {
       where: { tableId, userId },
     });
 
-    const remanining = await this.prisma.cafeTableSeat.count({
+    const remaining = await this.prisma.cafeTableSeat.count({
       where: { tableId },
     });
 
-    if (remanining === 0) {
-      await this.prisma.cafeTableSession.update({
-        where: { tableId },
-        data: { label: null, access: 'open' },
-      });
+    if (remaining === 0) {
+      const { start, end } = cafeDayRange(now);
+      await this.prisma.$transaction([
+        this.prisma.cafeTableSession.update({
+          where: { tableId },
+          data: { label: null, access: 'open' },
+        }),
+        this.prisma.cafeMessage.deleteMany({
+          where: { tableId, createdAt: { gte: start, lt: end } },
+        }),
+      ]);
     }
     const updated = await this.prisma.cafeTableSession.findFirstOrThrow({
       where: { tableId },
@@ -367,7 +421,7 @@ export class CafeService {
     await this.prisma.cafeTableSession.updateMany({
       data: { label: null, access: 'open' },
     });
-    const hall = await this.getHall(now);
+    const hall = await this.getHall(undefined, now);
     this.cafeGateway.emitHall(hall);
     return hall;
   }

@@ -14,6 +14,7 @@ import { SayCafeMessageDto } from './dto/say-cafe-message.dto';
 import { UpdateCafeMessageDto } from './dto/update-cafe-message.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
+import { OptionalUserId } from '../auth/decorators/optional-user-id.decorator';
 import type { CafeTableId, CafeTableSetup } from '@cinemo/shared';
 import { UserId } from '../auth/decorators/user-id.decorator';
 
@@ -25,8 +26,8 @@ export class CafeController {
 
   @Public()
   @Get('hall')
-  getHall() {
-    return this.cafeService.getHall();
+  getHall(@OptionalUserId() userId?: string) {
+    return this.cafeService.getHall(userId);
   }
   @Get('tables/:tableId/messages')
   getTableChat(@Param('tableId') tableId: CafeTableId) {

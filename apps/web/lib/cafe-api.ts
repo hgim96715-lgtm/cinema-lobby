@@ -9,8 +9,8 @@ import type {
 } from '@cinemo/shared';
 import { apiFetch } from './api';
 
-export function getCafeHallRequest() {
-  return apiFetch<CafeHallResponse>('/cafe/hall');
+export function getCafeHallRequest(token?: string | null) {
+  return apiFetch<CafeHallResponse>('/cafe/hall', { token });
 }
 
 export function getCafeTableChatRequest(token: string, tableId: CafeTableId) {

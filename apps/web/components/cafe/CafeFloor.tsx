@@ -11,41 +11,70 @@ import type {
 import { sitCafeTableRequest } from '@/lib/cafe-api';
 import { useAuthStore } from '@/lib/auth-store';
 import { CafeTableSetupModal } from '@/components/cafe/CafeTableSetup';
+import { CafeAlreadySeatedModal } from '@/components/cafe/CafeAlreadySeatedModal';
 
 type Props = {
   tables: CafeTableSnapshot[];
+  myTableId: CafeTableId | null;
 };
 
-export function CafeFloor({ tables }: Props) {
+export function CafeFloor({ tables, myTableId }: Props) {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const [setupTableId, setSetupTableId] = useState<CafeTableId | null>(null);
+  const [alreadySeatedOpen, setAlreadySeatedOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function openEmptyTable(tableId: CafeTableId) {
+  function requireAuth(): boolean {
     if (!accessToken) {
       router.push('/login');
-      return;
+      return false;
     }
+    return true;
+  }
+
+  function blockIfAlreadySeated(tableId: CafeTableId): boolean {
+    if (myTableId && myTableId !== tableId) {
+      setAlreadySeatedOpen(true);
+      return true;
+    }
+    return false;
+  }
+
+  function openEmptyTable(tableId: CafeTableId) {
+    if (!requireAuth()) return;
+    if (blockIfAlreadySeated(tableId)) return;
     setSetupTableId(tableId);
+  }
+
+  function enterOccupiedTable(tableId: CafeTableId) {
+    if (!requireAuth()) return;
+    if (blockIfAlreadySeated(tableId)) return;
+    router.push(`/cafe/${tableId}`);
   }
 
   async function confirmSetup(setup: CafeTableSetup) {
     if (!accessToken || !setupTableId) return;
     const tableId = setupTableId;
-    setSetupTableId(null);
+    setError(null);
     try {
       const sit = await sitCafeTableRequest(accessToken, tableId, setup);
       if (!sit.ok) {
+        if (sit.reason === 'already-seated') {
+          setSetupTableId(null);
+          setError(null);
+          setAlreadySeatedOpen(true);
+          return;
+        }
         setError(
           sit.reason === 'locked'
             ? '비공개 테이블입니다.'
-            : sit.reason === 'already-seated'
-              ? '다른 테이블에 앉아 있어요. 먼저 나와 주세요.'
-              : '입장할 수 없습니다.',
+            : '입장할 수 없습니다.',
         );
         return;
       }
+      setSetupTableId(null);
+      setError(null);
       router.push(`/cafe/${tableId}`);
     } catch (error) {
       setError(
@@ -77,6 +106,17 @@ export function CafeFloor({ tables }: Props) {
               </div>
             </>
           );
+          if (myTableId === table.tableId) {
+            return (
+              <Link
+                key={table.tableId}
+                href={`/cafe/${table.tableId}`}
+                className={`${className} cafe-table--mine`}
+              >
+                {inner}
+              </Link>
+            );
+          }
           if (locked) {
             return (
               <article key={table.tableId} className={className}>
@@ -97,20 +137,34 @@ export function CafeFloor({ tables }: Props) {
             );
           }
           return (
-            <Link
+            <button
               key={table.tableId}
-              href={`/cafe/${table.tableId}`}
+              type="button"
               className={className}
+              onClick={() => enterOccupiedTable(table.tableId)}
             >
               {inner}
-            </Link>
+            </button>
           );
         })}
       </section>
+      {alreadySeatedOpen
+        ? createPortal(
+            <CafeAlreadySeatedModal
+              myTableId={myTableId}
+              onClose={() => setAlreadySeatedOpen(false)}
+            />,
+            document.body,
+          )
+        : null}
       {setupTableId
         ? createPortal(
             <CafeTableSetupModal
-              onCancel={() => setSetupTableId(null)}
+              error={error}
+              onCancel={() => {
+                setSetupTableId(null);
+                setError(null);
+              }}
               onConfirm={confirmSetup}
             />,
             document.body,

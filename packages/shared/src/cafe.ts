@@ -40,6 +40,7 @@ export type UpdateCafeMessageInput = {
 export type CafeHallResponse = {
   tables: CafeTableSnapshot[];
   cafeJustClosed: boolean;
+  myTableId: CafeTableId | null;
 };
 
 export type CafeTableChatResponse = {

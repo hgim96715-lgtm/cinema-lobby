@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import type { CafeTableSnapshot } from '@cinemo/shared';
+import type { CafeTableId, CafeTableSnapshot } from '@cinemo/shared';
 import { getCafeHallRequest } from '@/lib/cafe-api';
 import { CafeStaff } from '@/components/cafe/CafeStaff';
 import { CafeFloor } from '@/components/cafe/CafeFloor';
@@ -15,6 +15,7 @@ import '../styles/cafe.css';
 export default function CafePage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const [tables, setTables] = useState<CafeTableSnapshot[]>([]);
+  const [myTableId, setMyTableId] = useState<CafeTableId | null>(null);
   const [cafeJustClosed, setCafeJustClosed] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -41,10 +42,11 @@ export default function CafePage() {
     let cancelled = false;
     async function loadHall() {
       try {
-        const hall = await getCafeHallRequest();
+        const hall = await getCafeHallRequest(accessToken);
         if (cancelled) return;
         setTables(hall.tables);
         setCafeJustClosed(hall.cafeJustClosed);
+        setMyTableId(hall.myTableId);
       } catch (e) {
         if (!cancelled) {
           setError(
@@ -57,7 +59,7 @@ export default function CafePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [accessToken]);
 
   useCafeHallSocket({ accessToken, setTables, setCafeJustClosed });
 
@@ -128,7 +130,7 @@ export default function CafePage() {
           </div>
         </section>
 
-        <CafeFloor tables={tables} />
+        <CafeFloor tables={tables} myTableId={myTableId} />
       </div>
 
       {mounted && noticeOpen

@@ -635,6 +635,12 @@
   opacity: 0.78;
 }
 
+.cafe-table--mine .cafe-tabletop {
+  box-shadow:
+    0 0 0 2px rgb(224 192 120 / 0.55),
+    0 8px 18px rgb(0 0 0 / 0.28);
+}
+
 .cafe-table--locked .cafe-tabletop {
   filter: grayscale(0.35) brightness(0.72);
 }
@@ -715,6 +721,22 @@
 
 .cafe-notice-perforation::after {
   right: -1.05rem;
+}
+
+.cafe-notice-body {
+  margin: 0.85rem 0 1rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #4a4238;
+}
+
+.cafe-setup-actions .cafe-notice-close {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .cafe-notice-rules {
@@ -850,10 +872,6 @@
   grid-template-columns: 1fr 1.35fr;
   gap: 0.45rem;
   margin-top: 0.15rem;
-}
-
-.cafe-setup-actions .cafe-notice-close {
-  width: auto;
 }
 
 .cafe-setup-cancel {
@@ -1042,6 +1060,113 @@ button.cafe-table {
   border-radius: 0.85rem 0.85rem 0.22rem 0.85rem;
   background: linear-gradient(180deg, #e8d4a4 0%, #d4b56a 100%);
   color: #2a1a10;
+  padding-bottom: 0.38rem;
+}
+
+.cafe-chat-text {
+  margin: 0;
+}
+
+.cafe-chat-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-top: 0.32rem;
+  padding-top: 0.28rem;
+  border-top: 1px solid rgb(42 26 16 / 0.12);
+}
+
+.cafe-chat-foot-spacer {
+  flex: 1;
+}
+
+.cafe-chat-edit-btn {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.18rem 0.52rem;
+  border: 1px solid rgb(42 26 16 / 0.18);
+  border-radius: 999px;
+  background: rgb(42 26 16 / 0.08);
+  color: #3a2518;
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.cafe-chat-edit-btn:hover {
+  background: rgb(42 26 16 / 0.14);
+  border-color: rgb(42 26 16 / 0.28);
+}
+
+.cafe-chat-edited {
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: rgb(42 26 16 / 0.48);
+}
+
+.cafe-chat-body--edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: min(100%, 14rem);
+  padding: 0.45rem 0.55rem 0.42rem;
+}
+
+.cafe-chat-edit-input {
+  width: 100%;
+  margin: 0;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid rgb(42 26 16 / 0.16);
+  border-radius: 0.55rem;
+  background: rgb(255 252 244 / 0.72);
+  color: #2a1a10;
+  font: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+
+.cafe-chat-edit-input:focus {
+  border-color: rgb(42 26 16 / 0.32);
+}
+
+.cafe-chat-foot--actions {
+  justify-content: flex-end;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.cafe-chat-edit-cancel,
+.cafe-chat-edit-save {
+  margin: 0;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.cafe-chat-edit-cancel {
+  border: 1px solid rgb(42 26 16 / 0.2);
+  background: transparent;
+  color: rgb(42 26 16 / 0.72);
+}
+
+.cafe-chat-edit-save {
+  border: none;
+  background: #3a2518;
+  color: #f0e4c8;
+  font-weight: 700;
+}
+
+.cafe-chat-edit-cancel:disabled,
+.cafe-chat-edit-save:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }
 
 .cafe-chat-form {

@@ -3,11 +3,12 @@ import { useState } from 'react';
 import type { CafeTableAccess, CafeTableSetup } from '@cinemo/shared';
 
 type Props = {
+  error?: string | null;
   onCancel: () => void;
   onConfirm: (setup: CafeTableSetup) => void;
 };
 
-export function CafeTableSetupModal({ onCancel, onConfirm }: Props) {
+export function CafeTableSetupModal({ error, onCancel, onConfirm }: Props) {
   const [label, setLabel] = useState('');
   const [access, setAccess] = useState<CafeTableAccess>('open');
 
@@ -19,8 +20,6 @@ export function CafeTableSetupModal({ onCancel, onConfirm }: Props) {
       rawAccess === 'locked' ? 'locked' : 'open';
 
     onConfirm({ label: nextLabel || null, access: nextAccess });
-    setLabel('');
-    setAccess('open');
   }
   return (
     <div className="cafe-notice-overlay" onClick={onCancel}>
@@ -36,6 +35,7 @@ export function CafeTableSetupModal({ onCancel, onConfirm }: Props) {
           테이블 정하기
         </h2>
         <span className="cafe-notice-perforation" aria-hidden />
+        {error ? <p className="cafe-error">{error}</p> : null}
         <form className="cafe-setup-form" action={confirm}>
           <label className="cafe-setup-field">
             이름 (선택)
