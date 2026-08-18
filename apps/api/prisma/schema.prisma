@@ -31,6 +31,8 @@ model User {
     reviewPosts     ReviewPost[]
     reviewPostLikes ReviewPostLike[]
     lobbyVisits     LobbyVisit[]
+    cafeMessages    CafeMessage[]
+    cafeTableSeats  CafeTableSeat[]
 
     @@map("users")
 }
@@ -133,4 +135,48 @@ model LobbyVisit {
     @@index([visitDate])
     @@index([visitedAt])
     @@map("lobby_visits")
+}
+
+enum CafeTableAccess {
+    open
+    locked
+}
+
+model CafeTableSession {
+    tableId   String          @id @map("table_id") @db.VarChar(1)
+    label     String?
+    access    CafeTableAccess @default(open)
+    updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    messages CafeMessage[]
+    seats    CafeTableSeat[]
+
+    @@map("cafe_table_sessions")
+}
+
+model CafeTableSeat {
+    tableId  String           @map("table_id") @db.VarChar(1)
+    userId   String           @map("user_id") @db.Uuid
+    joinedAt DateTime         @default(now()) @map("joined_at") @db.Timestamptz(3)
+    session  CafeTableSession @relation(fields: [tableId], references: [tableId], onDelete: Cascade)
+    user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([tableId, userId])
+    @@index([tableId])
+    @@map("cafe_table_seats")
+}
+
+model CafeMessage {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    tableId   String   @map("table_id") @db.VarChar(1)
+    userId    String   @map("user_id") @db.Uuid
+    body      String   @db.Text
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    session CafeTableSession @relation(fields: [tableId], references: [tableId], onDelete: Cascade)
+    user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([tableId, createdAt(sort: Desc)])
+    @@map("cafe_messages")
 }

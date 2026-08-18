@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { Calendar } from 'lucide-react';
 import type { BoardWeekTopMovie, LobbyBoardResponse } from '@cinemo/shared';
 import {
   getLobbyBoardRequest,
@@ -165,7 +166,10 @@ export function LobbyBoard() {
         </span>
       </div>
       <h1 className="lobby-board-brand">CINEMO</h1>
-      <p className="lobby-board-date">{dateLabel}</p>
+      <p className="lobby-board-date">
+        <Calendar className="lobby-board-date-icon" aria-hidden />
+        <span>{dateLabel}</span>
+      </p>
       {error ? <p className="lobby-board-date">{error}</p> : null}
       <div className="lobby-board" aria-label="전광판">
         <div className="lobby-board-slots">

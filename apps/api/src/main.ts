@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { EnvKeys } from './config/env.keys';
+import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -33,6 +34,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new PrismaExceptionFilter());
 
   const swagger = new DocumentBuilder()
     .setTitle('CINEMO API')

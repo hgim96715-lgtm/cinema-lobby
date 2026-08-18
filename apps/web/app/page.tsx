@@ -39,10 +39,10 @@ export default function HomePage() {
               <span className="lobby-door-frame" aria-hidden />
               <span className="lobby-door-label">후기방</span>
             </Link>
-            <span className="lobby-door lobby-door--soon" title="준비 중">
+            <Link href="/cafe" className="lobby-door">
               <span className="lobby-door-frame" aria-hidden />
               <span className="lobby-door-label">카페</span>
-            </span>
+            </Link>
           </div>
         </div>
 

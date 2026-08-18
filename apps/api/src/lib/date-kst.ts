@@ -56,3 +56,22 @@ export function kstWeekRange(now = new Date()): { start: Date; end: Date } {
   const end = new Date(start.getTime() + 7 * 86400000);
   return { start, end };
 }
+
+export function kstDateKey(date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+  }).format(date);
+}
+
+/** KST 02:00 마감 — 0~1시는 전날 수다로 취급 */
+export function cafeDayKey(now = new Date()): string {
+  const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  if (kst.getHours() < 2) kst.setDate(kst.getDate() - 1);
+  return kstDateKey(kst);
+}
+
+export function cafeDayRange(now = new Date()): { start: Date; end: Date } {
+  const key = cafeDayKey(now);
+  const start = new Date(`${key}T02:00:00+09:00`);
+  return { start, end: new Date(start.getTime() + 86400000) };
+}
