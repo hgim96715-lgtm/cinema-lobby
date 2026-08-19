@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 import { loginRequest } from '@/lib/auth-api';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next');
   const setSession = useAuthStore((state) => state.setSession);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,10 +23,20 @@ export default function LoginPage() {
       setError('입력을 확인해 주세요');
       return;
     }
+    if (password.length < 8) {
+      setError('비밀번호는 8자 이상이어야 합니다.');
+      return;
+    }
     try {
       const data = await loginRequest(email, password);
       setSession(data.accessToken, data.user);
-      router.push(data.user.role === 'admin' ? '/admin' : '/');
+      const dest =
+        next && next.startsWith('/')
+          ? next
+          : data.user.role === 'admin'
+            ? '/admin'
+            : '/';
+      router.push(dest);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : '로그인에 실패했습니다.',

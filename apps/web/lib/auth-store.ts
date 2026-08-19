@@ -11,6 +11,7 @@ export type AuthUser = {
 type AuthState = {
   accessToken: string | null;
   user: AuthUser | null;
+  hydrated: boolean;
   setSession: (accessToken: string, user: AuthUser) => void;
   clearSession: () => void;
   hydrate: () => void;
@@ -19,6 +20,7 @@ type AuthState = {
 const STORAGE_KEY = 'cinemo_access_token';
 
 export const useAuthStore = create<AuthState>((set) => ({
+  hydrated: false,
   accessToken: null,
   user: null,
 
@@ -35,6 +37,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrate: () => {
     if (typeof window === 'undefined') return;
     const accessToken = localStorage.getItem(STORAGE_KEY);
-    set({ accessToken });
+    set({ accessToken, hydrated: true });
   },
 }));

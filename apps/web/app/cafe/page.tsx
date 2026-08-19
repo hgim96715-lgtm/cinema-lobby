@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import type { CafeTableId, CafeTableSnapshot } from '@cinemo/shared';
 import { getCafeHallRequest } from '@/lib/cafe-api';
@@ -13,7 +14,15 @@ import { useAuthStore } from '@/lib/auth-store';
 import '../styles/cafe.css';
 
 export default function CafePage() {
+  const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (accessToken === null) router.replace('/login?next=/cafe');
+  }, [accessToken, router, hydrated]);
+
   const [tables, setTables] = useState<CafeTableSnapshot[]>([]);
   const [myTableId, setMyTableId] = useState<CafeTableId | null>(null);
   const [cafeJustClosed, setCafeJustClosed] = useState(false);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Check, Heart } from 'lucide-react';
 import {
   GACHA_ROOMS,
@@ -28,8 +29,15 @@ import '../styles/gacha.css';
 import '../styles/lobby.css';
 
 export default function GachaPage() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (accessToken === null) router.replace('/login?next=/gacha');
+  }, [accessToken, router, hydrated]);
 
   const [status, setStatus] = useState<TicketStatus | null>(null);
   const [selectedMachine, setSelectedMachine] = useState<MachineId | null>(
@@ -168,8 +176,7 @@ export default function GachaPage() {
   }
 
   const canSpin = status === 'issued' && !usedMachine && !spinning;
-  const isTestUser =
-    user.nickname === 'test' || user.nickname === 'testuser';
+  const isTestUser = user.nickname === 'test' || user.nickname === 'testuser';
   const roomMachines = selectedRoom
     ? MACHINES.filter((m) => m.room === selectedRoom)
     : [];
