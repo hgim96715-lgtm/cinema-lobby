@@ -10,6 +10,11 @@
   },
   "dependencies": {
     "@cinemo/shared": "workspace:*",
+    "@nivo/bar": "^0.99.0",
+    "@nivo/core": "^0.99.0",
+    "@nivo/heatmap": "^0.99.0",
+    "@nivo/line": "^0.99.0",
+    "@nivo/pie": "^0.99.0",
     "lucide-react": "^1.31.0",
     "next": "16.3.0",
     "react": "19.2.8",

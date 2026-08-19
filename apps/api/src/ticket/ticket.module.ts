@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { TicketController } from './ticket.controller';
 import { TmdbModule } from '../tmdb/tmdb.module';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
-  imports: [TmdbModule],
+  imports: [TmdbModule, AdminModule],
   controllers: [TicketController],
   providers: [TicketService],
 })

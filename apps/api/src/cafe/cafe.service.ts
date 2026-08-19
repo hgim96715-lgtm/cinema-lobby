@@ -24,6 +24,7 @@ import {
   isCafeTableId,
 } from './cafe-join';
 import { CafeGateway } from './cafe.gateway';
+import { AdminService } from '../admin/admin.service';
 
 export const CAFE_MESSAGE_RECENT_LIMIT = 50;
 
@@ -32,6 +33,7 @@ export class CafeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cafeGateway: CafeGateway,
+    private readonly adminService: AdminService,
   ) {}
 
   private async closeIfNewCafeDay(now = new Date()): Promise<boolean> {
@@ -196,10 +198,7 @@ export class CafeService {
     };
   }
 
-  async getHall(
-    userId?: string,
-    now = new Date(),
-  ): Promise<CafeHallResponse> {
+  async getHall(userId?: string, now = new Date()): Promise<CafeHallResponse> {
     const cafeJustClosed = await this.closeIfNewCafeDay(now);
     await this.ensureTableSessions();
     const rows = await this.prisma.cafeTableSession.findMany({
@@ -379,6 +378,7 @@ export class CafeService {
     });
     const message = this.toMessageItem(row);
     this.cafeGateway.emitMessage(tableId, message);
+    void this.adminService.countIncrement('cafeMessages');
     return message;
   }
 

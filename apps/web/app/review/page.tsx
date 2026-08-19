@@ -12,7 +12,9 @@ import {
 import { tmdbPosterUrl } from '@/lib/tmdb-image';
 import { Heart, Star, X } from 'lucide-react';
 import '../styles/review.css';
-import { useAuthStore } from '@/lib/auth-store';import { reviewPanelHint } from '@/lib/review-message';
+import { useAuthStore } from '@/lib/auth-store';
+import { recordAnonReviewVisitRequest } from '@/lib/anon-api';
+import { reviewPanelHint } from '@/lib/review-message';
 import { kstDateKey } from '@/lib/date-kst';
 import { capsuleLayout } from '@/lib/review-layout';
 import { searchMoviesRequest } from '@/lib/tmdb-api';
@@ -27,6 +29,7 @@ export default function ReviewPage() {
   const [openPost, setOpenPost] = useState<ReviewPostItem | null>(null);
 
   const accessToken = useAuthStore((s) => s.accessToken);
+  const [ready, setReady] = useState(false);
   const [pickMovies, setPickMovies] = useState<GachaMovie[]>([]);
   const [searching, setSearching] = useState(false);
   const [pickQuery, setPickQuery] = useState('');
@@ -43,6 +46,15 @@ export default function ReviewPage() {
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
 
   const [likeAuthOpen, setLikeAuthOpen] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready || accessToken) return;
+    void recordAnonReviewVisitRequest().catch(() => undefined);
+  }, [ready, accessToken]);
 
   useEffect(() => {
     let cancelled = false;

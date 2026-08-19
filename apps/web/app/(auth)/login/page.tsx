@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const data = await loginRequest(email, password);
       setSession(data.accessToken, data.user);
-      router.push('/');
+      router.push(data.user.role === 'admin' ? '/admin' : '/');
     } catch (error) {
       setError(
         error instanceof Error ? error.message : '로그인에 실패했습니다.',

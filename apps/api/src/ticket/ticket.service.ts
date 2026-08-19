@@ -14,11 +14,13 @@ import {
 import { todayKstDate } from '../lib/date-kst';
 import { PrismaService } from '../prisma/prisma.service';
 import { TmdbService } from '../tmdb/tmdb.service';
+import { AdminService } from '../admin/admin.service';
 @Injectable()
 export class TicketService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tmdbService: TmdbService,
+    private readonly adminService: AdminService,
   ) {}
 
   async getToday(userId: string): Promise<{
@@ -55,6 +57,7 @@ export class TicketService {
     const ticket = await this.prisma.ticket.create({
       data: { userId, ticketDate, status: 'issued', issuedAt: new Date() },
     });
+    void this.adminService.countIncrement('ticketsIssued');
     return { id: ticket.id };
   }
 
@@ -82,6 +85,7 @@ export class TicketService {
       where: { id: ticket.id },
       data: { status: 'used', usedAt: new Date(), machineId, tmdbId: movie.id },
     });
+    void this.adminService.countIncrement('ticketsUsed');
     return {
       status: 'used',
       machineId,

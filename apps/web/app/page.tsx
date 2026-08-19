@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
 import { TicketBooth } from '@/components/lobby/TicketBooth';
@@ -11,9 +12,18 @@ import './styles/lobby.css';
 import { LobbyBoard } from '@/components/lobby/LobbyBoard';
 
 export default function HomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
   const lit = Boolean(user);
   const [ticketStatus, setTicketStatus] = useState<TicketStatus | null>(null);
+  const stayLobby = searchParams.get('lobby') === '1';
+
+  useEffect(() => {
+    if (user?.role === 'admin' && !stayLobby) {
+      router.replace('/admin');
+    }
+  }, [user, stayLobby, router]);
 
   return (
     <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>

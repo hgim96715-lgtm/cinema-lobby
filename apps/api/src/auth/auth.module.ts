@@ -8,6 +8,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt-strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { RolesGuard } from './roles.guard';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
@@ -20,12 +22,17 @@ import { AuthController } from './auth.controller';
         signOptions: { expiresIn: '7d' },
       }),
     }),
+    AdminModule,
   ],
   controllers: [AuthController],
   providers: [
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     JwtStrategy,
     AuthService,

@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LobbyBoardResponse } from '@cinemo/shared';
 import { kstTodayRange, kstWeekRange, todayKstDate } from '../lib/date-kst';
 import { TmdbService } from '../tmdb/tmdb.service';
+import { AdminService } from '../admin/admin.service';
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -11,6 +12,7 @@ export class LobbyBoardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tmdbService: TmdbService,
+    private readonly adminService: AdminService,
   ) {}
 
   private countByTime(
@@ -50,12 +52,20 @@ export class LobbyBoardService {
   }
 
   async recordVisit(userId: string) {
-    const visitDate = todayKstDate();
-    await this.prisma.lobbyVisit.upsert({
-      where: { userId_visitDate: { userId, visitDate } },
-      create: { userId, visitDate },
-      update: {},
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
     });
+    if (user?.role === 'admin') return { ok: true as const };
+
+    const visitDate = todayKstDate();
+    const created = await this.prisma.lobbyVisit.createMany({
+      data: { userId, visitDate },
+      skipDuplicates: true,
+    });
+    if (created.count > 0) {
+      await this.adminService.countIncrement('visits');
+    }
     return { ok: true as const };
   }
 

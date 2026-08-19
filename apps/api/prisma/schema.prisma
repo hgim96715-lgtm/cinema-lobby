@@ -33,6 +33,7 @@ model User {
     lobbyVisits     LobbyVisit[]
     cafeMessages    CafeMessage[]
     cafeTableSeats  CafeTableSeat[]
+    loginLogs       AdminLoginLog[]
 
     @@map("users")
 }
@@ -137,6 +138,18 @@ model LobbyVisit {
     @@map("lobby_visits")
 }
 
+model AnonVisit {
+    id         String   @id @default(uuid(7)) @db.Uuid
+    visitorKey String   @map("visitor_key") @db.VarChar(36)
+    place      String   @db.VarChar(16)
+    visitDate  DateTime @map("visit_date") @db.Date
+    visitedAt  DateTime @default(now()) @map("visited_at") @db.Timestamptz(3)
+
+    @@unique([visitorKey, place, visitDate])
+    @@index([visitDate, place])
+    @@map("anon_visits")
+}
+
 enum CafeTableAccess {
     open
     locked
@@ -179,4 +192,41 @@ model CafeMessage {
 
     @@index([tableId, createdAt(sort: Desc)])
     @@map("cafe_messages")
+}
+
+model AdminLoginLog {
+    id       String   @id @default(uuid(7)) @db.Uuid
+    userId   String   @map("user_id") @db.Uuid
+    loggedAt DateTime @default(now()) @map("logged_at") @db.Timestamptz(3)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([loggedAt(sort: Desc)])
+    @@index([userId, loggedAt(sort: Desc)])
+    @@map("admin_login_logs")
+}
+
+model AdminDailyStat {
+    date          DateTime @id @db.Date
+    visits        Int      @default(0)
+    logins        Int      @default(0)
+    ticketsIssued Int      @default(0) @map("tickets_issued")
+    ticketsUsed   Int      @default(0) @map("tickets_used")
+    reviews       Int      @default(0)
+    cafeMessages  Int      @default(0) @map("cafe_messages")
+    updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    @@map("admin_daily_stats")
+}
+
+model AdminHourlyStat {
+    date         DateTime @db.Date
+    hour         Int
+    visits       Int      @default(0)
+    logins       Int      @default(0)
+    cafeMessages Int      @default(0) @map("cafe_messages")
+    updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    @@id([date, hour])
+    @@map("admin_hourly_stats")
 }

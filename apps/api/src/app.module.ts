@@ -12,6 +12,8 @@ import { UserMovieModule } from './user-movie/user-movie.module';
 import { ReviewPostModule } from './review-post/review-post.module';
 import { LobbyBoardModule } from './lobby-board/lobby-board.module';
 import { CafeModule } from './cafe/cafe.module';
+import { AdminModule } from './admin/admin.module';
+import { AnonModule } from './anon/anon.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { CafeModule } from './cafe/cafe.module';
     ReviewPostModule,
     LobbyBoardModule,
     CafeModule,
+    AdminModule,
+    AnonModule,
   ],
   controllers: [AppController],
   providers: [AppService],

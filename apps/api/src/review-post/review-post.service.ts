@@ -10,12 +10,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TmdbService } from '../tmdb/tmdb.service';
 import { ReviewPostItem } from '@cinemo/shared';
 import { kstTodayRange } from '../lib/date-kst';
+import { AdminService } from '../admin/admin.service';
 
 @Injectable()
 export class ReviewPostService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tmdbService: TmdbService,
+    private readonly adminService: AdminService,
   ) {}
 
   async list(limit = 40, userId?: string): Promise<ReviewPostItem[]> {
@@ -75,7 +77,7 @@ export class ReviewPostService {
       },
     });
     const movie = await this.tmdbService.getMovieCached(post.tmdbId);
-
+    void this.adminService.countIncrement('reviews');
     return {
       id: post.id,
       tmdbId: post.tmdbId,

@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import type { JwtPayload } from './jwt-payload';
+import { AdminService } from '../admin/admin.service';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -17,6 +18,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly adminService: AdminService,
   ) {}
 
   // register / login 성공 후 공통 응답 헬퍼
@@ -75,6 +77,9 @@ export class AuthService {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 일치하지 않습니다',
       );
+    if (user.role !== 'admin') {
+      await this.adminService.recordGuestLogin(user.id);
+    }
     return this.buildAuthResponse(user, '로그인 성공');
   }
 

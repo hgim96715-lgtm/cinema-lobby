@@ -60,4 +60,4 @@ Redis · FCM은 나중.
 클라이언트: **웹(Next) 먼저** → 나중에 `apps/mobile`(Expo) 추가.
 
 영화 포스터/메타는 TMDB API 사용.  
-로컬 메모: [docs/web/tmdb.md](docs/web/tmdb.md) · [docs/web/gacha.md](docs/web/gacha.md) · [docs/web/review.md](docs/web/review.md) (gitignore)
+로컬 메모: [docs/web/tmdb.md](docs/web/tmdb.md) · [docs/web/gacha.md](docs/web/gacha.md) · [docs/web/review.md](docs/web/review.md) · [docs/web/admin.md](docs/web/admin.md) (gitignore)
