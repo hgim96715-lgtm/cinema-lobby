@@ -90,6 +90,7 @@ model MoviePool {
     director        String?
     genreIds        Int[]    @default([]) @map("genre_ids")
     originCountries String[] @default([]) @map("origin_countries")
+    providers       Json     @default("[]")
     syncedAt        DateTime @default(now()) @map("synced_at") @db.Timestamptz(3)
 
     @@map("movie_pool")

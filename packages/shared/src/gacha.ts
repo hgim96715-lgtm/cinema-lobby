@@ -51,6 +51,11 @@ export const GACHA_TMDB_FILTERS: Record<
 export function isGachaMachineId(id: string): id is GachaMachineId {
   return GACHA_MACHINES.some((m) => m.id === id);
 }
+export type WatchProvider = {
+  id: number;
+  name: string;
+  logo_path: string;
+};
 
 export type GachaMovie = {
   id: number;
@@ -59,6 +64,7 @@ export type GachaMovie = {
   poster_path: string | null;
   release_date: string;
   director: string | null;
+  providers: WatchProvider[];
 };
 
 export type UseTicketResult = {

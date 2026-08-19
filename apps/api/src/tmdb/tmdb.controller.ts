@@ -69,4 +69,12 @@ export class TmdbController {
   ) {
     return this.tmdbService.seedPool(this.getFilters(machineId), pages);
   }
+
+  @Post('seed-pool/all')
+  @ApiQuery({ name: 'pages', required: false, example: 10 })
+  seedPoolAll(
+    @Query('pages', new DefaultValuePipe(10), ParseIntPipe) pages: number,
+  ) {
+    return this.tmdbService.seedPoolAll(pages);
+  }
 }

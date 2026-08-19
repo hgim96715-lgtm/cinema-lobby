@@ -984,6 +984,30 @@
   }
 }
 
+.gacha-providers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.gacha-provider-logo {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  background: #111;
+  flex-shrink: 0;
+  opacity: 0.9;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.gacha-provider-logo:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
 @media (max-width: 640px) {
   .gacha-machine {
     width: calc(50% - 0.45rem);

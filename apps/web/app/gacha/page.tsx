@@ -434,6 +434,19 @@ export default function GachaPage() {
               </div>
             )}
             <div className="gacha-modal-actions">
+              {capsulePhase === 'open' && gachaMovie?.providers?.length ? (
+                <div className="gacha-providers">
+                  {gachaMovie.providers.map((p) => (
+                    <img
+                      key={p.id}
+                      src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+                      alt={p.name}
+                      title={p.name}
+                      className="gacha-provider-logo"
+                    />
+                  ))}
+                </div>
+              ) : null}
               {capsulePhase === 'open' && gachaMovie ? (
                 <div className="gacha-marks">
                   <button

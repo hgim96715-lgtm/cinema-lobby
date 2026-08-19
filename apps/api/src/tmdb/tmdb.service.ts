@@ -3,7 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { EnvKeys } from '../config/env.keys';
 import { PrismaService } from '../prisma/prisma.service';
 import type { MoviePool } from '../generated/prisma/client';
-import type { GachaMovie, MovieWithTags } from '@cinemo/shared';
+import {
+  GACHA_MACHINES,
+  GACHA_TMDB_FILTERS,
+  type GachaMovie,
+  type MovieWithTags,
+  type WatchProvider,
+} from '@cinemo/shared';
 import {
   normalizeSearchQuery,
   searchQueryFallbacks,
@@ -16,6 +22,22 @@ type TmdbDiscoverMovie = {
   overview: string;
   poster_path: string | null;
   release_date: string;
+};
+
+type TmdbProvider = {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+};
+
+type TmdbWatchProvidersResponse = {
+  results?: {
+    KR?: {
+      flatrate?: TmdbProvider[];
+      rent?: TmdbProvider[];
+      buy?: TmdbProvider[];
+    };
+  };
 };
 
 @Injectable()
@@ -75,8 +97,11 @@ export class TmdbService {
     });
   }
 
-  /** MoviePool row → 앱 카드(GachaMovie) 형태 */
+  /** MoviePool row → GachaMovie (DB의 providers 사용) */
   private fromPool(row: MoviePool): GachaMovie {
+    const providers = Array.isArray(row.providers)
+      ? (row.providers as WatchProvider[])
+      : [];
     return {
       id: row.tmdbId,
       title: row.title,
@@ -84,6 +109,7 @@ export class TmdbService {
       poster_path: row.posterPath,
       release_date: row.releaseDate,
       director: row.director,
+      providers,
     };
   }
 
@@ -91,15 +117,16 @@ export class TmdbService {
     const cached = await this.prismaService.moviePool.findUnique({
       where: { tmdbId: movieId },
     });
-    // hit = row + 태그 있음 · 태그 빈 옛 row는 TMDB 재동기화
+    // DB hit + 태그 있음 → TMDB 호출 없이 반환 (providers는 DB에서)
     if (
       cached &&
       (cached.genreIds.length > 0 || cached.originCountries.length > 0)
     ) {
       return this.fromPool(cached);
     }
+    const providers = await this.getMovieProviders(movieId);
     const movie = await this.getMovie(movieId);
-    const { genre_ids, origin_countries, ...card } = movie;
+    const { genre_ids, origin_countries, providers: _p, ...card } = movie;
     await this.prismaService.moviePool.upsert({
       where: { tmdbId: movieId },
       create: {
@@ -111,6 +138,7 @@ export class TmdbService {
         director: movie.director,
         genreIds: genre_ids,
         originCountries: origin_countries,
+        providers,
       },
       update: {
         title: movie.title,
@@ -120,10 +148,11 @@ export class TmdbService {
         director: movie.director,
         genreIds: genre_ids,
         originCountries: origin_countries,
+        providers,
         syncedAt: new Date(),
       },
     });
-    return card;
+    return { ...card, providers };
   }
 
   async seedPool(
@@ -139,6 +168,17 @@ export class TmdbService {
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
     return { ok: true };
+  }
+
+  async seedPoolAll(pages = 10): Promise<Record<string, { ok: boolean }>> {
+    const results: Record<string, { ok: boolean }> = {};
+    for (const machine of GACHA_MACHINES) {
+      results[machine.id] = await this.seedPool(
+        GACHA_TMDB_FILTERS[machine.id],
+        pages,
+      );
+    }
+    return results;
   }
 
   async pickRandomMovie(
@@ -197,6 +237,7 @@ export class TmdbService {
     const genre_ids = detail.genres?.map((g) => g.id) ?? [];
     const origin_countries =
       detail.production_countries?.map((c) => c.iso_3166_1) ?? [];
+    const providers = await this.getMovieProviders(movieId);
     return {
       id: movieId,
       title: detail.title,
@@ -204,9 +245,48 @@ export class TmdbService {
       poster_path: detail.poster_path,
       release_date: detail.release_date,
       director,
+      providers,
       genre_ids,
       origin_countries,
     };
+  }
+
+  /** 동일 서비스의 하위 티어 id → 대표 id 매핑 */
+  private static readonly PROVIDER_CANONICAL: Record<number, number> = {
+    1796: 8, // Netflix Standard with Ads → Netflix
+  };
+
+  async getMovieProviders(movieId: number): Promise<WatchProvider[]> {
+    try {
+      const data = await this.get<TmdbWatchProvidersResponse>(
+        `/movie/${movieId}/watch/providers`,
+      );
+      const kr = data.results?.KR ?? {};
+      const all = [
+        ...(kr.flatrate ?? []),
+        ...(kr.rent ?? []),
+        ...(kr.buy ?? []),
+      ];
+      const seen = new Set<number>();
+      return all
+        .filter((p) => {
+          // 같은 서비스의 다른 티어는 대표 id로 통일
+          const canonical =
+            TmdbService.PROVIDER_CANONICAL[p.provider_id] ?? p.provider_id;
+          if (seen.has(canonical)) return false;
+          seen.add(canonical);
+          return true;
+        })
+        .map((p) => ({
+          id: TmdbService.PROVIDER_CANONICAL[p.provider_id] ?? p.provider_id,
+          name: p.provider_name
+            .replace(/\s*(Standard with Ads|with Ads)\s*/i, '')
+            .trim(),
+          logo_path: p.logo_path,
+        }));
+    } catch (error) {
+      return [];
+    }
   }
 
   private async getMovieDetail(movieId: number, language = 'ko-KR') {
