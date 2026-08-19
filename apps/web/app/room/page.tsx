@@ -16,6 +16,12 @@ export default function MyRoomPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const clearSession = useAuthStore((s) => s.clearSession);
   const [counts, setCounts] = useState<UserMovieCounts | null>(null);
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!accessToken) router.replace('/login?next=/room');
+  }, [hydrated, accessToken, router]);
 
   useEffect(() => {
     if (!accessToken) return;

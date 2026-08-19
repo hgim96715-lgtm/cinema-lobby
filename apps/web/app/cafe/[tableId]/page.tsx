@@ -48,6 +48,12 @@ export default function CafeTablePage() {
   const [blockedMyTableId, setBlockedMyTableId] = useState<CafeTableId | null>(
     null,
   );
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!accessToken) router.replace('/login?next=/cafe');
+  }, [hydrated, accessToken, router]);
 
   useEffect(() => {
     if (!accessToken) {
