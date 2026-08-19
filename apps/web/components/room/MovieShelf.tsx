@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Check, Heart } from 'lucide-react';
 import type {
   UserMovieKind,
@@ -24,8 +25,15 @@ type Props = {
 };
 
 export function MovieShelf({ kind, title }: Props) {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hydrated = useAuthStore((s) => s.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!accessToken) router.replace('/login?next=/room');
+  }, [hydrated, accessToken, router]);
   const [items, setItems] = useState<UserMovieListItem[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
