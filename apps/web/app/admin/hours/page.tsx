@@ -5,7 +5,7 @@ import { AdminChartPage } from '@/components/admin/AdminChartPage';
 
 export default function AdminHoursPage() {
   return (
-    <AdminChartPage title="시간" sub="오늘 로비 방문 · 최근 7일 기록">
+    <AdminChartPage title="시간" sub="오늘 로비 막대 · 7일 시간대 히트맵">
       {(analytics) => <AdminHoursChart analytics={analytics} />}
     </AdminChartPage>
   );

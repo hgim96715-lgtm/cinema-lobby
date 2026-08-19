@@ -96,7 +96,7 @@ export default function AdminPage() {
         </>
       ) : null}
       <h2 className="admin-section">최근 7일</h2>
-      <p className="admin-sub admin-sub--tight">날짜별 인원</p>
+      <p className="admin-sub admin-sub--tight">날짜별 인원 · 선 / 비중</p>
       {chartError ? <p className="admin-error">{chartError}</p> : null}
       {chartLoading ? <p className="admin-status">불러오는 중…</p> : null}
       {analytics ? <AdminWeekPeople analytics={analytics} /> : null}
