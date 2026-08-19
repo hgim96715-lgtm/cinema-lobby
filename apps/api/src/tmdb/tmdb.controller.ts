@@ -9,6 +9,7 @@ import {
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GACHA_TMDB_FILTERS, isGachaMachineId } from '@cinemo/shared';
 import { TmdbService } from './tmdb.service';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('tmdb')
 @ApiBearerAuth()
@@ -54,6 +55,7 @@ export class TmdbController {
     return this.tmdbService.searchMovies(q, page);
   }
 
+  @Roles('admin')
   @Post('seed-pool')
   @ApiQuery({
     name: 'machineId',
@@ -70,6 +72,7 @@ export class TmdbController {
     return this.tmdbService.seedPool(this.getFilters(machineId), pages);
   }
 
+  @Roles('admin')
   @Post('seed-pool/all')
   @ApiQuery({ name: 'pages', required: false, example: 10 })
   seedPoolAll(
