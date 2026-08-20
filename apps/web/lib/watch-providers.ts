@@ -71,7 +71,7 @@ export const WATCH_PROVIDERS = [
     /** TMDB watch provider 없음 · Cinemo 로컬 id */
     providerId: 9001,
     providerName: 'Coupang Play',
-    logoPath: '/ott/coupang-play.png',
+    logoPath: '/ott/coupang-play.svg',
   },
 ] as const;
 
