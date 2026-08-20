@@ -1,11 +1,13 @@
 import type {
   CafeHallResponse,
   CafeMessageItem,
+  CafeNotice,
   CafeSitResult,
   CafeStandResult,
   CafeTableChatResponse,
   CafeTableId,
   CafeTableSetup,
+  UpdateCafeNoticeInput,
 } from '@cinemo/shared';
 import { apiFetch } from './api';
 
@@ -59,5 +61,20 @@ export function updateCafeMessageRequest(
     method: 'PATCH',
     token,
     body: JSON.stringify({ body }),
+  });
+}
+
+export function getCafeNoticeRequest() {
+  return apiFetch<CafeNotice>('/cafe/notice');
+}
+
+export function updateCafeNoticeRequest(
+  token: string,
+  input: UpdateCafeNoticeInput,
+) {
+  return apiFetch<CafeNotice>('/cafe/notice', {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(input),
   });
 }

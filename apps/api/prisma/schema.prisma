@@ -256,3 +256,15 @@ model MovieProviderOverride {
     @@index([tmdbId])
     @@map("movie_provider_overrides")
 }
+
+model CafeNotice {
+    id        String   @id @default(uuid(7)) @db.Uuid
+    key       String   @unique @default("cafe") @db.VarChar(16)
+    kicker    String   @default("CINEMO SNACK BAR") @db.VarChar(64)
+    title     String   @default("주의사항") @db.VarChar(128)
+    rules     String[] @default([])
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+    updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+    @@map("cafe_notices")
+}

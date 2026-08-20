@@ -494,6 +494,22 @@
   text-align: left;
 }
 
+.admin-cafe-field {
+  margin-top: 0.85rem;
+}
+
+.admin-cafe-rules {
+  width: 100%;
+  min-height: 8rem;
+  text-align: left;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.admin-cafe-toolbar {
+  margin-top: 1rem;
+}
+
 select.admin-ops-input {
   appearance: none;
   padding-right: 1.7rem;

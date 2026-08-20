@@ -6,6 +6,9 @@ import {
 } from '@nestjs/common';
 import {
   CAFE_TABLE_SLOTS,
+  DEFAULT_CAFE_NOTICE_RULES,
+  UpdateCafeNoticeInput,
+  type CafeNotice,
   type CafeHallResponse,
   type CafeMessageItem,
   type CafeSitResult,
@@ -35,6 +38,56 @@ export class CafeService {
     private readonly cafeGateway: CafeGateway,
     private readonly adminService: AdminService,
   ) {}
+
+  private toNotice(row: {
+    id: string;
+    key: string;
+    kicker: string;
+    title: string;
+    rules: string[];
+    createdAt: Date;
+    updatedAt: Date;
+  }): CafeNotice {
+    return {
+      id: row.id,
+      key: row.key,
+      kicker: row.kicker,
+      title: row.title,
+      rules: row.rules,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    };
+  }
+
+  private async ensureCafeNotice(): Promise<void> {
+    await this.prisma.cafeNotice.upsert({
+      where: { key: 'cafe' },
+      create: { key: 'cafe', rules: [...DEFAULT_CAFE_NOTICE_RULES] },
+      update: {},
+    });
+  }
+
+  async getNotice(): Promise<CafeNotice> {
+    await this.ensureCafeNotice();
+    const row = await this.prisma.cafeNotice.findUniqueOrThrow({
+      where: { key: 'cafe' },
+    });
+    return this.toNotice(row);
+  }
+
+  async updateNotice(input: UpdateCafeNoticeInput): Promise<CafeNotice> {
+    await this.ensureCafeNotice();
+    const rules = input.rules?.map((line) => line.trim()).filter(Boolean);
+    const row = await this.prisma.cafeNotice.update({
+      where: { key: 'cafe' },
+      data: {
+        ...(input.kicker !== undefined ? { kicker: input.kicker.trim() } : {}),
+        ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+        ...(rules !== undefined ? { rules } : {}),
+      },
+    });
+    return this.toNotice(row);
+  }
 
   private async closeIfNewCafeDay(now = new Date()): Promise<boolean> {
     const { start } = cafeDayRange(now);

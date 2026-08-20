@@ -56,3 +56,27 @@ export type CafeStandResult = {
   snapshot: CafeTableSnapshot;
   cafeJustClosed: boolean;
 };
+
+export const DEFAULT_CAFE_NOTICE_RULES = [
+  "짧은 한 줄 · 이모지 OK · 장문 SNS ❌",
+  "오늘 수다만 — 새벽 2시에 사라져요",
+  "남기고 싶은 말 → 후기방",
+  "첫 앉은 사람이 이름 · 공개/비공개",
+  "말하기 = 로그인 · 본인 말만 수정",
+] as const;
+
+export type CafeNotice = {
+  id: string;
+  key: string;
+  kicker: string;
+  title: string;
+  rules: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UpdateCafeNoticeInput = {
+  kicker?: string;
+  title?: string;
+  rules?: string[];
+};

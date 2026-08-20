@@ -5,8 +5,12 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import type { CafeTableId, CafeTableSnapshot } from '@cinemo/shared';
-import { getCafeHallRequest } from '@/lib/cafe-api';
+import type {
+  CafeNotice,
+  CafeTableId,
+  CafeTableSnapshot,
+} from '@cinemo/shared';
+import { getCafeHallRequest, getCafeNoticeRequest } from '@/lib/cafe-api';
 import { CafeStaff } from '@/components/cafe/CafeStaff';
 import { CafeFloor } from '@/components/cafe/CafeFloor';
 import { useCafeHallSocket } from '@/hooks/useCafeHallSocket';
@@ -27,6 +31,7 @@ export default function CafePage() {
   const [myTableId, setMyTableId] = useState<CafeTableId | null>(null);
   const [cafeJustClosed, setCafeJustClosed] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
+  const [notice, setNotice] = useState<CafeNotice | null>(null);
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +41,20 @@ export default function CafePage() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCafeNoticeRequest()
+      .then((row) => {
+        if (!cancelled) setNotice(row);
+      })
+      .catch(() => {
+        /* ignore — 모달은 기본 없이 비움 */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -155,17 +174,17 @@ export default function CafePage() {
                 aria-labelledby="cafe-notice-title"
                 onClick={(e) => e.stopPropagation()}
               >
-                <p className="cafe-notice-kicker">CINEMO SNACK BAR</p>
+                <p className="cafe-notice-kicker">
+                  {notice?.kicker ?? 'CINEMO SNACK BAR'}
+                </p>
                 <h2 id="cafe-notice-title" className="cafe-notice-title">
-                  주의사항
+                  {notice?.title ?? '주의사항'}
                 </h2>
                 <span className="cafe-notice-perforation" aria-hidden />
                 <ul className="cafe-notice-rules">
-                  <li>짧은 한 줄 · 이모지 OK · 장문 SNS ❌</li>
-                  <li>오늘 수다만 — 새벽 2시에 사라져요</li>
-                  <li>남기고 싶은 말 → 후기방</li>
-                  <li>첫 앉은 사람이 이름 · 공개/비공개</li>
-                  <li>말하기 = 로그인 · 본인 말만 수정</li>
+                  {(notice?.rules ?? []).map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
                 </ul>
                 <button
                   type="button"
