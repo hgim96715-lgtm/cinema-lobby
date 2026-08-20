@@ -10,14 +10,18 @@ import { guestTicketLabel } from '@/lib/lobby-speech';
 import { GuestFigure } from '@/components/lobby/GuestFigure';
 import './styles/lobby.css';
 import { LobbyBoard } from '@/components/lobby/LobbyBoard';
+import { WeeklyRevealModal } from '@/components/lobby/WeeklyRevealModal';
+import { useWeeklyReveal } from '@/hooks/useWeeklyReveal';
 
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const lit = Boolean(user);
   const [ticketStatus, setTicketStatus] = useState<TicketStatus | null>(null);
   const stayLobby = searchParams.get('lobby') === '1';
+  const { winner, dismiss } = useWeeklyReveal(user?.id);
 
   useEffect(() => {
     if (user?.role === 'admin' && !stayLobby) {
@@ -28,6 +32,14 @@ export default function HomePage() {
   return (
     <main className={`lobby ${lit ? 'lobby--lit' : 'lobby--dim'}`}>
       <div className="lobby-atmosphere" aria-hidden />
+
+      {winner ? (
+        <WeeklyRevealModal
+          winner={winner}
+          accessToken={accessToken}
+          onClose={dismiss}
+        />
+      ) : null}
 
       <div className="lobby-stage">
         <LobbyBoard />

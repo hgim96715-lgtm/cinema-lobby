@@ -85,3 +85,15 @@ export function kstHour(now = new Date()): number {
     }).format(now),
   );
 }
+
+/** KST 지난주 월요일 00:00 ~ 이번 주 월요일 00:00 */
+export function kstPreviousWeekRange(now = new Date()): {
+  start: Date;
+  end: Date;
+} {
+  const { start, end } = kstWeekRange(now);
+  return {
+    start: new Date(start.getTime() - 7 * DAY_MS),
+    end: start,
+  };
+}

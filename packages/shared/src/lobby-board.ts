@@ -1,3 +1,5 @@
+import { GachaMovie } from "./gacha";
+
 export type BoardWeekTopMovie = {
   tmdbId: number;
   title: string;
@@ -15,4 +17,12 @@ export type LobbyBoardResponse = {
   weekReviewCount: number;
 
   weekTopMovies: BoardWeekTopMovie[];
+};
+
+export type WeeklyRevealWinner = {
+  tmdbId: number;
+  title: string;
+  count: number;
+  sampleBody: string | null;
+  movie: GachaMovie;
 };

@@ -122,7 +122,11 @@ export function LobbyBoard() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const [board, setBoard] = useState<LobbyBoardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const dateLabel = kstLobbyDateLabel();
+  const [dateLabel, setDateLabel] = useState('');
+
+  useEffect(() => {
+    setDateLabel(kstLobbyDateLabel());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,7 +172,7 @@ export function LobbyBoard() {
       <h1 className="lobby-board-brand">CINEMO</h1>
       <p className="lobby-board-date">
         <Calendar className="lobby-board-date-icon" aria-hidden />
-        <span>{dateLabel}</span>
+        <span suppressHydrationWarning>{dateLabel || '—'}</span>
       </p>
       {error ? <p className="lobby-board-date">{error}</p> : null}
       <div className="lobby-board" aria-label="전광판">

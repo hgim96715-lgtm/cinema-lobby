@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LobbyBoardResponse } from '@cinemo/shared';
-import { kstTodayRange, kstWeekRange, todayKstDate } from '../lib/date-kst';
+import {
+  kstPreviousWeekRange,
+  kstTodayRange,
+  kstWeekRange,
+  todayKstDate,
+} from '../lib/date-kst';
 import { TmdbService } from '../tmdb/tmdb.service';
 import { AdminService } from '../admin/admin.service';
 
@@ -108,6 +113,23 @@ export class LobbyBoardService {
       todayReviewSeries,
       weekReviewCount: weekTopMovies.reduce((a, m) => a + m.count, 0),
       weekTopMovies,
+    };
+  }
+
+  async getWeeklyRevealWinner() {
+    const { start, end } = kstPreviousWeekRange();
+    const [winner] = await this.weekTopMovies(start, end);
+    if (!winner) return null;
+
+    const sample = await this.prisma.reviewPost.findFirst({
+      where: { tmdbId: winner.tmdbId, createdAt: { gte: start, lt: end } },
+      orderBy: { createdAt: 'desc' },
+      select: { body: true },
+    });
+    return {
+      ...winner,
+      sampleBody: sample?.body ?? null,
+      movie: await this.tmdbService.getMovieCached(winner.tmdbId),
     };
   }
 }

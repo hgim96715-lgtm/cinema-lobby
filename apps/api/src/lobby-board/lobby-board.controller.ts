@@ -15,6 +15,12 @@ export class LobbyBoardController {
     return this.lobbyBoardService.getBoard();
   }
 
+  @Public()
+  @Get('weekly-reveal')
+  getWeeklyRevealWinner() {
+    return this.lobbyBoardService.getWeeklyRevealWinner();
+  }
+
   @ApiBearerAuth()
   @Post('visit')
   recordVisit(@UserId() userId: string) {
