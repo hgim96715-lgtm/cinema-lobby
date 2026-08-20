@@ -25,6 +25,7 @@ import {
 import { gachaMessage, type CapsulePhase } from '@/lib/gacha-message';
 import { MACHINES, type MachineId } from '@/lib/gacha-machines';
 import { tmdbPosterUrl } from '@/lib/tmdb-image';
+import { providerLogoUrl } from '@/lib/watch-providers';
 import '../styles/gacha.css';
 import '../styles/lobby.css';
 
@@ -439,7 +440,7 @@ export default function GachaPage() {
                   {gachaMovie.providers.map((p) => (
                     <img
                       key={p.id}
-                      src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+                      src={providerLogoUrl(p.logo_path)}
                       alt={p.name}
                       title={p.name}
                       className="gacha-provider-logo"

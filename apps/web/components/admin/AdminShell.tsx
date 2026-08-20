@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/auth-store';
 
 const LINKS = [
   { href: '/admin', label: '현황' },
+  { href: '/admin/ops', label: '운영' },
   { href: '/admin/users', label: '사용자' },
   { href: '/admin/hours', label: '시간' },
 ] as const;

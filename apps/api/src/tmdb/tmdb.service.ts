@@ -14,6 +14,7 @@ import {
   normalizeSearchQuery,
   searchQueryFallbacks,
 } from '../lib/search-query';
+import { UpsertProviderOverrideDto } from './dto/upsert-provider-override.dto';
 
 type TmdbDiscoverMovie = {
   id: number;
@@ -22,6 +23,7 @@ type TmdbDiscoverMovie = {
   overview: string;
   poster_path: string | null;
   release_date: string;
+  genre_ids: number[];
 };
 
 type TmdbProvider = {
@@ -72,6 +74,60 @@ export class TmdbService {
     return response.json();
   }
 
+  private seedProgress: {
+    done: number;
+    total: number;
+    machineId: string;
+  } | null = null;
+
+  /** TMDB providers + admin override merge */
+  private mergeProviders(
+    base: WatchProvider[],
+    overrides: {
+      providerId: number;
+      providerName: string;
+      logoPath: string | null;
+      action: 'add' | 'remove';
+    }[],
+  ): WatchProvider[] {
+    const map = new Map<number, WatchProvider>();
+    for (const provider of base) map.set(provider.id, provider);
+    for (const override of overrides) {
+      if (override.action === 'remove') map.delete(override.providerId);
+    }
+    for (const override of overrides) {
+      if (override.action === 'add') {
+        map.set(override.providerId, {
+          id: override.providerId,
+          name: override.providerName,
+          logo_path: override.logoPath ?? '',
+        });
+      }
+    }
+    return this.collapseDisplayProviders([...map.values()]);
+  }
+
+  /** 구독 id가 있으면 같은 서비스 rent/buy id 숨김 */
+  private collapseDisplayProviders(
+    providers: WatchProvider[],
+  ): WatchProvider[] {
+    const map = new Map(providers.map((p) => [p.id, p]));
+    if (map.has(2) && map.has(350)) map.delete(2); // Apple TV → Apple TV+
+    if (map.has(10) && map.has(119)) map.delete(10); // Amazon Video → Prime
+    return [...map.values()];
+  }
+
+  async getMergeProviders(
+    tmdbId: number,
+    base: WatchProvider[],
+  ): Promise<WatchProvider[]> {
+    const overrides = await this.prismaService.movieProviderOverride.findMany({
+      where: { tmdbId },
+      orderBy: { updatedAt: 'asc' },
+    });
+    return this.mergeProviders(base, overrides);
+  }
+
   async getMovieGenres(language = 'ko') {
     return this.get<{ genres: { id: number; name: string }[] }>(
       '/genre/movie/list',
@@ -98,10 +154,11 @@ export class TmdbService {
   }
 
   /** MoviePool row → GachaMovie (DB의 providers 사용) */
-  private fromPool(row: MoviePool): GachaMovie {
-    const providers = Array.isArray(row.providers)
+  private async fromPool(row: MoviePool): Promise<GachaMovie> {
+    const base = Array.isArray(row.providers)
       ? (row.providers as WatchProvider[])
       : [];
+    const providers = await this.getMergeProviders(row.tmdbId, base);
     return {
       id: row.tmdbId,
       title: row.title,
@@ -113,20 +170,23 @@ export class TmdbService {
     };
   }
 
-  async getMovieCached(movieId: number): Promise<GachaMovie> {
+  async getMovieCached(
+    movieId: number,
+    opts?: { force?: boolean },
+  ): Promise<GachaMovie> {
     const cached = await this.prismaService.moviePool.findUnique({
       where: { tmdbId: movieId },
     });
     // DB hit + 태그 있음 → TMDB 호출 없이 반환 (providers는 DB에서)
     if (
+      !opts?.force &&
       cached &&
       (cached.genreIds.length > 0 || cached.originCountries.length > 0)
     ) {
-      return this.fromPool(cached);
+      return await this.fromPool(cached);
     }
-    const providers = await this.getMovieProviders(movieId);
     const movie = await this.getMovie(movieId);
-    const { genre_ids, origin_countries, providers: _p, ...card } = movie;
+    const { genre_ids, origin_countries, providers, ...card } = movie;
     await this.prismaService.moviePool.upsert({
       where: { tmdbId: movieId },
       create: {
@@ -152,19 +212,24 @@ export class TmdbService {
         syncedAt: new Date(),
       },
     });
-    return { ...card, providers };
+    return {
+      ...card,
+      providers: await this.getMergeProviders(movieId, providers),
+    };
   }
 
   async seedPool(
     filters: Record<string, string> = {},
     pages = 5,
+    opts?: { onPageDone?: (page: number) => void },
   ): Promise<{ ok: boolean }> {
     for (let page = 1; page <= pages; page++) {
       const { results } = await this.discoverMovies(filters, page);
       for (const movie of results) {
         if (!movie.poster_path) continue;
-        await this.getMovieCached(movie.id);
+        await this.getMovieCached(movie.id, { force: true });
       }
+      opts?.onPageDone?.(page);
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
     return { ok: true };
@@ -172,13 +237,61 @@ export class TmdbService {
 
   async seedPoolAll(pages = 10): Promise<Record<string, { ok: boolean }>> {
     const results: Record<string, { ok: boolean }> = {};
+    const total = GACHA_MACHINES.length * pages;
+    let done = 0;
+    this.seedProgress = { done: 0, total, machineId: '' };
+
     for (const machine of GACHA_MACHINES) {
       results[machine.id] = await this.seedPool(
         GACHA_TMDB_FILTERS[machine.id],
         pages,
+        {
+          onPageDone: () => {
+            done += 1;
+            this.seedProgress = { done, total, machineId: machine.id };
+          },
+        },
       );
     }
+
+    this.seedProgress = null;
     return results;
+  }
+
+  getSeedProgress() {
+    return this.seedProgress;
+  }
+
+  async listProviderOverrides(tmdbId: number) {
+    return this.prismaService.movieProviderOverride.findMany({
+      where: { tmdbId },
+      orderBy: { updatedAt: 'asc' },
+    });
+  }
+
+  async upsertProviderOverride(userId: string, dto: UpsertProviderOverrideDto) {
+    return this.prismaService.movieProviderOverride.upsert({
+      where: {
+        tmdbId_providerId_action: {
+          tmdbId: dto.tmdbId,
+          providerId: dto.providerId,
+          action: dto.action,
+        },
+      },
+      create: {
+        tmdbId: dto.tmdbId,
+        providerId: dto.providerId,
+        providerName: dto.providerName,
+        logoPath: dto.logoPath,
+        action: dto.action,
+        createdBy: userId,
+      },
+      update: {
+        providerName: dto.providerName,
+        logoPath: dto.logoPath,
+        note: dto.note ?? null,
+      },
+    });
   }
 
   async pickRandomMovie(
@@ -204,7 +317,7 @@ export class TmdbService {
         where,
         skip: Math.floor(Math.random() * count),
       });
-      if (row) return this.fromPool(row);
+      if (row) return await this.fromPool(row);
     }
 
     // 풀 miss · 태그 없는 옛 row → Discover
@@ -268,7 +381,7 @@ export class TmdbService {
         ...(kr.buy ?? []),
       ];
       const seen = new Set<number>();
-      return all
+      const merged = all
         .filter((p) => {
           // 같은 서비스의 다른 티어는 대표 id로 통일
           const canonical =
@@ -284,6 +397,7 @@ export class TmdbService {
             .trim(),
           logo_path: p.logo_path,
         }));
+      return this.collapseDisplayProviders(merged);
     } catch (error) {
       return [];
     }

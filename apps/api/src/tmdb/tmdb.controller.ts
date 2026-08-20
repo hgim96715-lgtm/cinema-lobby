@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   DefaultValuePipe,
   Get,
@@ -10,6 +11,8 @@ import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GACHA_TMDB_FILTERS, isGachaMachineId } from '@cinemo/shared';
 import { TmdbService } from './tmdb.service';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UserId } from '../auth/decorators/user-id.decorator';
+import { UpsertProviderOverrideDto } from './dto/upsert-provider-override.dto';
 
 @ApiTags('tmdb')
 @ApiBearerAuth()
@@ -56,6 +59,12 @@ export class TmdbController {
   }
 
   @Roles('admin')
+  @Get('seed-pool/progress')
+  getSeedPoolProgress() {
+    return this.tmdbService.getSeedProgress();
+  }
+
+  @Roles('admin')
   @Post('seed-pool')
   @ApiQuery({
     name: 'machineId',
@@ -79,5 +88,20 @@ export class TmdbController {
     @Query('pages', new DefaultValuePipe(10), ParseIntPipe) pages: number,
   ) {
     return this.tmdbService.seedPoolAll(pages);
+  }
+
+  @Roles('admin')
+  @Get('provider-overrides')
+  listProviderOverrides(@Query('tmdbId', ParseIntPipe) tmdbId: number) {
+    return this.tmdbService.listProviderOverrides(tmdbId);
+  }
+
+  @Roles('admin')
+  @Post('provider-overrides')
+  upsertProviderOverride(
+    @UserId() userId: string,
+    @Body() dto: UpsertProviderOverrideDto,
+  ) {
+    return this.tmdbService.upsertProviderOverride(userId, dto);
   }
 }

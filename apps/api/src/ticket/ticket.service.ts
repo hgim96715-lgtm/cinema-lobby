@@ -89,14 +89,7 @@ export class TicketService {
     return {
       status: 'used',
       machineId,
-      movie: {
-        id: movie.id,
-        title: movie.title,
-        overview: movie.overview,
-        poster_path: movie.poster_path,
-        release_date: movie.release_date,
-        director: movie.director,
-      },
+      movie,
     };
   }
 
