@@ -286,9 +286,7 @@ export default function GachaPage() {
                 setSelectedMachine(null);
               }}
             >
-              <span className="gacha-room-kicker">
-                {room.id === 'genre' ? 'GENRE' : 'COUNTRY'}
-              </span>
+              <span className="gacha-room-kicker">{room.id.toUpperCase()}</span>
               <span className="gacha-room-label">{room.label}</span>
             </button>
           );

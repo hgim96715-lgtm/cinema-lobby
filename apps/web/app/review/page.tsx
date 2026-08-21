@@ -174,7 +174,6 @@ export default function ReviewPage() {
   const visiblePicks = pickMovies;
   const pickQueryTrimmed = normalizeSearchQuery(pickQuery);
 
-  const boardRows = Math.max(4, Math.ceil(posts.length / 7));
   const todayKey = kstDateKey();
   const postedToday = Boolean(
     wroteThisVisit ||
@@ -189,7 +188,10 @@ export default function ReviewPage() {
     ? '볼을 눌러 구경하거나, 입장 후 후기를 남겨 보세요'
     : reviewPanelHint(postedToday);
   const ballSize = posts.length > 12 ? 'sm' : posts.length > 4 ? 'md' : 'lg';
-  const rowPitch = ballSize === 'sm' ? 2.35 : ballSize === 'md' ? 2.85 : 3.65;
+  const chamberMinRem = Math.max(
+    18,
+    16 + Math.min(10, Math.ceil(Math.sqrt(Math.max(posts.length, 1)))) * 1.6,
+  );
 
   async function onDelete() {
     if (!accessToken || !openPost) return;
@@ -261,9 +263,7 @@ export default function ReviewPage() {
             <div
               className={`review-machine review-machine--${ballSize}`}
               role="list"
-              style={{
-                minHeight: `${Math.max(16, boardRows * rowPitch + 2.2)}rem`,
-              }}
+              style={{ minHeight: `${chamberMinRem}rem` }}
             >
               {posts.length === 0 ? (
                 <p className="review-machine-empty">아직 볼이 없어요</p>

@@ -19,7 +19,7 @@ export function gachaMessage(
     default:
       switch (status) {
         case 'issued':
-          if (!selectedRoom) return '먼저 장르방 또는 국적방을 고르세요.';
+          if (!selectedRoom) return '먼저 방을 골라주세요.';
           return '티켓 1장으로 머신 하나만 고르세요.';
         case 'used':
           return '오늘 뽑기는 이미 끝났어요.';

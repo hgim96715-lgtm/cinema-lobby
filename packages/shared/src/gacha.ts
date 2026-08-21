@@ -1,6 +1,7 @@
 export const GACHA_ROOMS = [
   { id: "genre", label: "장르방" },
   { id: "country", label: "국적방" },
+  { id: "picks", label: "추천방" },
 ] as const;
 
 /** 방마다 8대 (랜덤 포함 / 국적 8) — 6~9 실험 구간 */
@@ -21,6 +22,7 @@ export const GACHA_MACHINES = [
   { id: "cn", room: "country", label: "중국", kicker: "CN" },
   { id: "de", room: "country", label: "독일", kicker: "DE" },
   { id: "in", room: "country", label: "인도", kicker: "IN" },
+  { id: "picks", room: "picks", label: "추천픽", kicker: "PICKS" },
 ] as const;
 
 export type GachaMachineId = (typeof GACHA_MACHINES)[number]["id"];
@@ -46,6 +48,7 @@ export const GACHA_TMDB_FILTERS: Record<
   cn: { with_origin_country: "CN" },
   de: { with_origin_country: "DE" },
   in: { with_origin_country: "IN" },
+  picks: {},
 };
 
 export function isGachaMachineId(id: string): id is GachaMachineId {

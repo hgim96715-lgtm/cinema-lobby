@@ -61,6 +61,43 @@ export class TicketService {
     return { id: ticket.id };
   }
 
+  private async pickFromReviews(userId: string): Promise<GachaMovie> {
+    const [reviewed, watched, alreadyPulled] = await Promise.all([
+      this.prisma.reviewPost.findMany({
+        distinct: ['tmdbId'],
+        select: { tmdbId: true },
+      }),
+
+      this.prisma.userMovie.findMany({
+        where: { userId, kind: 'watched' },
+        select: { tmdbId: true },
+      }),
+      this.prisma.ticket.findMany({
+        where: { userId, machineId: 'picks', status: 'used' },
+        select: { tmdbId: true },
+      }),
+    ]);
+
+    const excludeSet = new Set<number>([
+      ...watched.map((row) => row.tmdbId),
+      ...alreadyPulled
+        .map((row) => row.tmdbId)
+        .filter((id): id is number => id != null),
+    ]);
+
+    const pool = reviewed
+      .map((row) => row.tmdbId)
+      .filter((id) => !excludeSet.has(id));
+
+    if (pool.length === 0) {
+      throw new NotFoundException(
+        '뽑을 수 있는 영화가 없어요. 후기가 더 쌓이면 다시 도전해보세요!',
+      );
+    }
+    const tmdbId = pool[Math.floor(Math.random() * pool.length)];
+    return this.tmdbService.getMovieCached(tmdbId);
+  }
+
   async useToday(userId: string, machineId: string) {
     if (!isGachaMachineId(machineId)) {
       throw new BadRequestException('유효하지 않은 머신 ID입니다.');
@@ -73,14 +110,20 @@ export class TicketService {
     if (ticket.status === 'used')
       throw new ConflictException('이미 사용한 티켓입니다.');
 
-    const watched = await this.prisma.userMovie.findMany({
-      where: { userId, kind: 'watched' },
-      select: { tmdbId: true },
-    });
-    const movie = await this.tmdbService.pickRandomMovie(
-      GACHA_TMDB_FILTERS[machineId],
-      watched.map((row) => row.tmdbId),
-    );
+    let movie: GachaMovie;
+
+    if (machineId === 'picks') {
+      movie = await this.pickFromReviews(userId);
+    } else {
+      const watched = await this.prisma.userMovie.findMany({
+        where: { userId, kind: 'watched' },
+        select: { tmdbId: true },
+      });
+      movie = await this.tmdbService.pickRandomMovie(
+        GACHA_TMDB_FILTERS[machineId],
+        watched.map((row) => row.tmdbId),
+      );
+    }
     await this.prisma.ticket.update({
       where: { id: ticket.id },
       data: { status: 'used', usedAt: new Date(), machineId, tmdbId: movie.id },
