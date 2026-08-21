@@ -14,6 +14,8 @@ import { LobbyBoardModule } from './lobby-board/lobby-board.module';
 import { CafeModule } from './cafe/cafe.module';
 import { AdminModule } from './admin/admin.module';
 import { AnonModule } from './anon/anon.module';
+import { AiController } from './ai/ai.controller';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -34,8 +36,9 @@ import { AnonModule } from './anon/anon.module';
     CafeModule,
     AdminModule,
     AnonModule,
+    AiModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AiController],
   providers: [AppService],
 })
 export class AppModule {}

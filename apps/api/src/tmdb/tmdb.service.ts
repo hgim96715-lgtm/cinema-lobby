@@ -1,4 +1,8 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvKeys } from '../config/env.keys';
 import { PrismaService } from '../prisma/prisma.service';
@@ -15,6 +19,7 @@ import {
   searchQueryFallbacks,
 } from '../lib/search-query';
 import { UpsertProviderOverrideDto } from './dto/upsert-provider-override.dto';
+import { AiService } from '../ai/ai.service';
 
 type TmdbDiscoverMovie = {
   id: number;
@@ -44,9 +49,11 @@ type TmdbWatchProvidersResponse = {
 
 @Injectable()
 export class TmdbService {
+  private readonly logger = new Logger(TmdbService.name);
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
+    private readonly aiService: AiService,
   ) {}
 
   private async get<T>(
@@ -153,13 +160,68 @@ export class TmdbService {
     });
   }
 
+  /**
+   * ko-KR overview 없거나 title이 한글/영어가 아닐 때 Claude로 보정.
+   * DB에 바로 upsert → 다음 요청부터 DB hit (AI 재호출 없음).
+   */
+  private async enrichIfNeeded(
+    tmdbId: number,
+    title: string,
+    overview: string,
+    releaseDate: string,
+    director: string | null,
+  ): Promise<{ title: string; overview: string; director: string | null }> {
+    const needsOverview = overview.trim() === '';
+    const needsTitle =
+      !/[\uAC00-\uD7AF]/.test(title) && /[^\u0020-\u007E]/.test(title);
+    const needsDirector =
+      !!director &&
+      !/[\uAC00-\uD7AF]/.test(director) &&
+      /[^\u0020-\u007E]/.test(director);
+    if (!needsOverview && !needsTitle && !needsDirector)
+      return { title, overview, director };
+
+    const enDetail = await this.getMovieDetail(tmdbId, 'en-US');
+    const titleEn = enDetail.title ?? title;
+    const overviewEn = enDetail.overview ?? '';
+    const year = releaseDate.slice(0, 4) ?? '';
+
+    let newTitle = title;
+    let newOverview = overview;
+    let newDirector = director;
+
+    if (needsOverview && overviewEn) {
+      newOverview =
+        (await this.aiService.translateOverview(titleEn, overviewEn)) ??
+        overview;
+    }
+    if (needsTitle) {
+      newTitle = (await this.aiService.koreanTitle(titleEn, year)) ?? titleEn;
+    }
+    if (needsDirector && director) {
+      const kor = await this.aiService.koreanDirector(director);
+      if (kor) newDirector = `${director} (${kor})`;
+    }
+    if (
+      newTitle !== title ||
+      newOverview !== overview ||
+      newDirector !== director
+    ) {
+      await this.prismaService.moviePool.update({
+        where: { tmdbId },
+        data: { title: newTitle, overview: newOverview, director: newDirector },
+      });
+    }
+    return { title: newTitle, overview: newOverview, director: newDirector };
+  }
+
   /** MoviePool row → GachaMovie (DB의 providers 사용) */
   private async fromPool(row: MoviePool): Promise<GachaMovie> {
     const base = Array.isArray(row.providers)
       ? (row.providers as WatchProvider[])
       : [];
     const providers = await this.getMergeProviders(row.tmdbId, base);
-    return {
+    const movie: GachaMovie = {
       id: row.tmdbId,
       title: row.title,
       overview: row.overview,
@@ -168,6 +230,16 @@ export class TmdbService {
       director: row.director,
       providers,
     };
+    void this.enrichIfNeeded(
+      row.tmdbId,
+      movie.title,
+      movie.overview ?? '',
+      movie.release_date ?? '',
+      movie.director ?? null,
+    ).catch((error) =>
+      this.logger.warn(`background enrich 실패: ${(error as Error).message}`),
+    );
+    return movie;
   }
 
   async getMovieCached(
@@ -177,7 +249,7 @@ export class TmdbService {
     const cached = await this.prismaService.moviePool.findUnique({
       where: { tmdbId: movieId },
     });
-    // DB hit + 태그 있음 → TMDB 호출 없이 반환 (providers는 DB에서)
+
     if (
       !opts?.force &&
       cached &&
@@ -187,6 +259,7 @@ export class TmdbService {
     }
     const movie = await this.getMovie(movieId);
     const { genre_ids, origin_countries, providers, ...card } = movie;
+
     await this.prismaService.moviePool.upsert({
       where: { tmdbId: movieId },
       create: {
@@ -212,6 +285,19 @@ export class TmdbService {
         syncedAt: new Date(),
       },
     });
+
+    void this.enrichIfNeeded(
+      movieId,
+      movie.title,
+      movie.overview ?? '',
+      movie.release_date ?? '',
+      movie.director ?? null,
+    ).catch((error) =>
+      this.logger.warn(
+        `background enrich (miss) 실패: ${(error as Error).message}`,
+      ),
+    );
+
     return {
       ...card,
       providers: await this.getMergeProviders(movieId, providers),

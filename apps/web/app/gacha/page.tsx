@@ -208,6 +208,18 @@ export default function GachaPage() {
         await new Promise((r) => window.setTimeout(r, spinMs - waited));
       }
       setGachaMovie(res.movie);
+
+      // overview 없으면 백그라운드 enrich 완료 후 자동 갱신 (사용자 리프레시 불필요)
+      if (!res.movie.overview?.trim()) {
+        window.setTimeout(async () => {
+          try {
+            const fresh = await getTodayTicketRequest(accessToken!);
+            if (fresh.movie?.overview?.trim()) setGachaMovie(fresh.movie);
+          } catch {
+            /* silent */
+          }
+        }, 2500);
+      }
       setCardFlipped(false);
       setStatus('used');
       setUsedMachine(selectedMachine);
