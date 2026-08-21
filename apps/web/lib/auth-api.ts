@@ -1,3 +1,4 @@
+import type { AvatarConfig } from '@cinemo/shared';
 import { apiFetch } from './api';
 import type { AuthUser } from './auth-store';
 
@@ -27,6 +28,14 @@ export function registerRequest(
 
 export function meRequest(token: string) {
   return apiFetch<AuthUser>('/auth/me', { token });
+}
+
+export function updateAvatarRequest(token: string, avatar: AvatarConfig) {
+  return apiFetch<AuthUser>('/auth/avatar', {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(avatar),
+  });
 }
 
 export function checkEmailRequest(email: string) {

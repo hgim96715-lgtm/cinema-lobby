@@ -17,3 +17,4 @@ export * from "./review-post";
 export * from "./lobby-board";
 export * from "./cafe";
 export * from "./admin";
+export * from "./avatar";

@@ -7,11 +7,12 @@ import type { TicketStatus } from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
 import { TicketBooth } from '@/components/lobby/TicketBooth';
 import { guestTicketLabel } from '@/lib/lobby-speech';
-import { GuestFigure } from '@/components/lobby/GuestFigure';
 import './styles/lobby.css';
+import './styles/avatar.css';
 import { LobbyBoard } from '@/components/lobby/LobbyBoard';
 import { WeeklyRevealModal } from '@/components/lobby/WeeklyRevealModal';
 import { useWeeklyReveal } from '@/hooks/useWeeklyReveal';
+import { AvatarFigure } from '@/components/room/AvatarFigure';
 
 export default function HomePage() {
   const router = useRouter();
@@ -71,7 +72,7 @@ export default function HomePage() {
         <div className="lobby-guest" aria-label={user ? user.nickname : '손님'}>
           <div className="lobby-guest-bar">
             <div className="lobby-guest-identity">
-              <GuestFigure />
+              <AvatarFigure config={user?.avatarConfig} />
               <p className="lobby-guest-name">
                 {user ? user.nickname : '손님'}
               </p>

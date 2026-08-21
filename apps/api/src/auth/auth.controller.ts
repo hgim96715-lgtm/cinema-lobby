@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Query, Post } from '@nestjs/common';
+import { Body, Controller, Get, Query, Post, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Public } from './decorators/public.decorator';
 import { UserId } from './decorators/user-id.decorator';
+import { UpdateAvatarDto } from './dto/update-avatar.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -39,5 +40,11 @@ export class AuthController {
   @Get('me')
   getMe(@UserId() userId: string) {
     return this.authService.getMe(userId);
+  }
+
+  @ApiBearerAuth()
+  @Patch('avatar')
+  updateAvatar(@UserId() userId: string, @Body() dto: UpdateAvatarDto) {
+    return this.authService.updateAvatar(userId, dto);
   }
 }

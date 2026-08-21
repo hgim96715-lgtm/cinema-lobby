@@ -1,4 +1,6 @@
 'use client';
+
+import type { AvatarConfig } from '@cinemo/shared';
 import { create } from 'zustand';
 
 export type AuthUser = {
@@ -6,6 +8,7 @@ export type AuthUser = {
   email: string;
   nickname: string;
   role: 'user' | 'admin';
+  avatarConfig: AvatarConfig;
 };
 
 type AuthState = {
@@ -13,6 +16,7 @@ type AuthState = {
   user: AuthUser | null;
   hydrated: boolean;
   setSession: (accessToken: string, user: AuthUser) => void;
+  setUser: (user: AuthUser) => void;
   clearSession: () => void;
   hydrate: () => void;
 };
@@ -28,6 +32,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem(STORAGE_KEY, accessToken);
     set({ accessToken, user });
   },
+
+  setUser: (user) => set({ user }),
 
   clearSession: () => {
     localStorage.removeItem(STORAGE_KEY);

@@ -24,6 +24,7 @@ model User {
     passwordHash           String                  @map("password_hash")
     nickname               String                  @unique
     role                   UserRole                @default(user)
+    avatarConfig           Json?
     createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
     updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
     tickets                Ticket[]

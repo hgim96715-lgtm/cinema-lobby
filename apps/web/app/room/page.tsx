@@ -3,20 +3,33 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { UserMovieCounts } from '@cinemo/shared';
+import {
+  DEFAULT_AVATAR,
+  type AvatarConfig,
+  type UserMovieCounts,
+} from '@cinemo/shared';
 import { useAuthStore } from '@/lib/auth-store';
-import { GuestFigure } from '@/components/lobby/GuestFigure';
+import { updateAvatarRequest } from '@/lib/auth-api';
+import { AvatarFigure } from '@/components/room/AvatarFigure';
+import { WardrobeModal } from '@/components/room/WardrobeModal';
 import { getUserMovieCountsRequest } from '@/lib/user-movie-api';
 import '../styles/room.css';
 import '../styles/lobby.css';
+import '../styles/avatar.css';
 
 export default function MyRoomPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setUser = useAuthStore((s) => s.setUser);
   const clearSession = useAuthStore((s) => s.clearSession);
-  const [counts, setCounts] = useState<UserMovieCounts | null>(null);
   const hydrated = useAuthStore((s) => s.hydrated);
+  const [counts, setCounts] = useState<UserMovieCounts | null>(null);
+  const [wardrobeOpen, setWardrobeOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const avatarConfig = user?.avatarConfig ?? DEFAULT_AVATAR;
 
   useEffect(() => {
     if (!hydrated) return;
@@ -39,6 +52,21 @@ export default function MyRoomPage() {
       cancelled = true;
     };
   }, [accessToken]);
+
+  async function handleSaveAvatar(config: AvatarConfig) {
+    if (!accessToken || !user) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await updateAvatarRequest(accessToken, config);
+      setUser(updated);
+      setWardrobeOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (!user) {
     return (
@@ -70,7 +98,7 @@ export default function MyRoomPage() {
 
       <div className="room-stage">
         <div className="room-me">
-          <GuestFigure />
+          <AvatarFigure config={avatarConfig} />
           <p className="room-me-name">{user.nickname}</p>
         </div>
 
@@ -89,7 +117,12 @@ export default function MyRoomPage() {
           <button type="button" className="room-zone" disabled title="준비 중">
             프로필
           </button>
-          <button type="button" className="room-zone" disabled title="준비 중">
+          <button
+            type="button"
+            className="room-zone"
+            onClick={() => setWardrobeOpen(true)}
+            disabled={saving}
+          >
             옷방
           </button>
           <button type="button" className="room-zone" disabled title="준비 중">
@@ -97,6 +130,8 @@ export default function MyRoomPage() {
           </button>
         </nav>
       </div>
+
+      {error ? <p className="room-copy">{error}</p> : null}
 
       <div className="room-actions">
         <Link href="/" className="lobby-btn lobby-btn--primary">
@@ -106,6 +141,14 @@ export default function MyRoomPage() {
           로그아웃
         </button>
       </div>
+
+      {wardrobeOpen ? (
+        <WardrobeModal
+          initial={avatarConfig}
+          onSave={(config) => void handleSaveAvatar(config)}
+          onClose={() => setWardrobeOpen(false)}
+        />
+      ) : null}
     </main>
   );
 }
